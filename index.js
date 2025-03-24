@@ -8,6 +8,9 @@ const SPREADSHEET_ID = '1_Y5zRKs4WMZSMijFbA0_9G0Zl7VvO9X3Oyk8rsDEDJo';
 const CLIENT_ID = '438989169136-altbqvh21k2onkpjoqo750gfvjmstade.apps.googleusercontent.com';
 const RANGE = 'Finances!A1:A37,C1:C37,H1:H37';
 
+// Store access token globally
+let accessToken = null;
+
 function parseJwt(token) {
   const base64Url = token.split('.')[1];
   const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -183,7 +186,7 @@ function checkout() {
 
 function selectCash(amount) {
   cashGiven += amount;
-  document.getElementById("cash-given").textContent = cashGiven.toFixed(2);
+  document.getElementById("cash-given")?.textContent = cashGiven.toFixed(2);
   calculateChange();
 }
 
@@ -191,14 +194,11 @@ function calculateChange() {
   const total = parseFloat(document.getElementById("total").textContent);
   let change = cashGiven - total;
   if (change < 0) {
-    document.getElementById("change-breakdown").textContent = "Not enough cash.";
+    document.getElementById("change-breakdown")?.textContent = "Not enough cash.";
     return;
   }
-  document.getElementById("change-breakdown").textContent = change.toFixed(2);
+  document.getElementById("change-breakdown")?.textContent = change.toFixed(2);
 }
-
-// Google Identity Services (GIS) Integration
-let accessToken = null;
 
 function handleCredentialResponse(response) {
   console.log("Encoded JWT ID token:", response.credential);
@@ -206,7 +206,8 @@ function handleCredentialResponse(response) {
   console.log("User Info:", user);
   if (user.email_verified && user.email === "ncote@evoyageur.ca") {
     console.log("Login successful!");
-    accessToken = response.access_token || promptForAccessToken(); // Fallback if access_token isn’t provided
+    // GIS doesn’t provide access_token by default; use OAuth Playground for now
+    accessToken = response.access_token || promptForAccessToken();
     getDataFromSheet();
   } else {
     alert("Unauthorized access. Please use an authorized account.");
@@ -214,9 +215,8 @@ function handleCredentialResponse(response) {
 }
 
 function promptForAccessToken() {
-  // This is a temporary workaround; ideally, use OAuth flow
-  console.log("Access token not provided by GIS. Manual token input required for testing.");
-  return prompt("Enter your Google Sheets API access token (get from OAuth Playground):");
+  console.log("GIS doesn’t provide access token directly. Using OAuth Playground as a workaround.");
+  return prompt("Enter Google Sheets API access token (from OAuth Playground):");
 }
 
 function getDataFromSheet() {
@@ -247,9 +247,9 @@ function updateItems(data) {
 
 function updateStockInSheet() {
   if (!accessToken) {
-    console.error("No access token available. Please sign in.");
-    // Optionally trigger sign-in again via GIS button
-    return;
+    console.error("No access token available. Please sign in and provide a token.");
+    accessToken = promptForAccessToken();
+    if (!accessToken) return;
   }
   const updatedStock = [items.map(item => item.stock)];
   const range = `Finances!H2:H${items.length + 1}`;
