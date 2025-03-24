@@ -5,6 +5,7 @@ let cashGiven = 0;
 
 const API_KEY = 'AIzaSyB5Lbyb7TQ8NFA8rvrOoEbQUY8v-kXt73M';
 const SPREADSHEET_ID = '1_Y5zRKs4WMZSMijFbA0_9G0Zl7VvO9X3Oyk8rsDEDJo';
+const CLIENT_ID = '438989169136-altbqvh21k2onkpjoqo750gfvjmstade.apps.googleusercontent.com';
 const RANGE = 'Finances!A1:A37,C1:C37,H1:H37';
 
 function parseJwt(token) {
@@ -172,11 +173,6 @@ function checkout() {
       items: itemsSummary
     });
   }
-  if (typeof gapi === 'undefined' || !gapi.auth2) {
-    console.log("Google API not ready yet. Waiting...");
-    setTimeout(() => checkout(), 500);
-    return;
-  }
   updateStockInSheet();
   cart = [];
   saveData();
@@ -201,15 +197,26 @@ function calculateChange() {
   document.getElementById("change-breakdown").textContent = change.toFixed(2);
 }
 
+// Google Identity Services (GIS) Integration
+let accessToken = null;
+
 function handleCredentialResponse(response) {
   console.log("Encoded JWT ID token:", response.credential);
   const user = parseJwt(response.credential);
   console.log("User Info:", user);
   if (user.email_verified && user.email === "ncote@evoyageur.ca") {
     console.log("Login successful!");
+    accessToken = response.access_token || promptForAccessToken(); // Fallback if access_token isn’t provided
+    getDataFromSheet();
   } else {
     alert("Unauthorized access. Please use an authorized account.");
   }
+}
+
+function promptForAccessToken() {
+  // This is a temporary workaround; ideally, use OAuth flow
+  console.log("Access token not provided by GIS. Manual token input required for testing.");
+  return prompt("Enter your Google Sheets API access token (get from OAuth Playground):");
 }
 
 function getDataFromSheet() {
@@ -239,25 +246,11 @@ function updateItems(data) {
 }
 
 function updateStockInSheet() {
-  if (typeof gapi === 'undefined' || !gapi.auth2) {
-    console.error("gapi.auth2 not available. Ensure Google API is loaded.");
+  if (!accessToken) {
+    console.error("No access token available. Please sign in.");
+    // Optionally trigger sign-in again via GIS button
     return;
   }
-  const authInstance = gapi.auth2.getAuthInstance();
-  if (!authInstance || !authInstance.isSignedIn.get()) {
-    console.error("User not signed in. Prompting sign-in...");
-    authInstance.signIn().then(() => {
-      console.log("Sign-in successful, updating stock...");
-      const token = authInstance.currentUser.get().getAuthResponse().access_token;
-      updateStockWithToken(token);
-    }).catch(error => console.error("Sign-in failed in updateStockInSheet:", error));
-    return;
-  }
-  const token = authInstance.currentUser.get().getAuthResponse().access_token;
-  updateStockWithToken(token);
-}
-
-function updateStockWithToken(token) {
   const updatedStock = [items.map(item => item.stock)];
   const range = `Finances!H2:H${items.length + 1}`;
   const requestBody = {
@@ -265,12 +258,12 @@ function updateStockWithToken(token) {
     majorDimension: "COLUMNS",
     values: updatedStock
   };
-  console.log("OAuth Token:", token);
+  console.log("OAuth Token:", accessToken);
   console.log("Request Body:", requestBody);
   fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${range}?valueInputOption=RAW`, {
     method: "PUT",
     headers: {
-      "Authorization": `Bearer ${token}`,
+      "Authorization": `Bearer ${accessToken}`,
       "Content-Type": "application/json"
     },
     body: JSON.stringify(requestBody)
@@ -283,50 +276,14 @@ function updateStockWithToken(token) {
   .catch(error => console.error("Update failed:", error));
 }
 
-function loadGoogleClient() {
-  function waitForGapi() {
-    if (typeof gapi === 'undefined') {
-      console.log("gapi not loaded yet. Retrying in 500ms...");
-      setTimeout(waitForGapi, 500);
-      return;
-    }
-    console.log("gapi is available. Loading client:auth2...");
-    gapi.load('client:auth2', initializeGapi);
-  }
-
-  function initializeGapi() {
-    console.log("gapi.client:auth2 loaded.");
-    gapi.client.init({
-      apiKey: API_KEY,
-      clientId: '438989169136-altbqvh21k2onkpjoqo750gfvjmstade.apps.googleusercontent.com',
-      scope: 'https://www.googleapis.com/auth/spreadsheets',
-      discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4']
-    }).then(() => {
-      console.log("Google API initialized successfully.");
-      const authInstance = gapi.auth2.getAuthInstance();
-      if (!authInstance.isSignedIn.get()) {
-        console.log("User not signed in. Prompting sign-in...");
-        authInstance.signIn().then(() => {
-          console.log("User signed in successfully!");
-          getDataFromSheet();
-        }).catch(error => console.error("Initial sign-in failed:", error));
-      } else {
-        console.log("User already signed in.");
-        getDataFromSheet();
-      }
-    }).catch(error => {
-      console.error("Detailed error initializing Google API:", error);
-      console.log("Error details:", JSON.stringify(error, null, 2));
-    });
-  }
-
-  waitForGapi();
-}
-
 document.addEventListener('DOMContentLoaded', () => {
-  console.log("DOM loaded. Starting Google Client load...");
-  loadGoogleClient();
+  console.log("DOM loaded. Starting app...");
   renderCart();
   renderHistory();
-  document.getElementById('checkout-btn').addEventListener('click', checkout); // Event listener for checkout
+  const checkoutBtn = document.getElementById('checkout-btn');
+  if (checkoutBtn) {
+    checkoutBtn.addEventListener('click', checkout);
+  } else {
+    console.error("Checkout button not found in DOM!");
+  }
 });
