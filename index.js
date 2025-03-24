@@ -93,45 +93,58 @@ function saveData() {
 
 // Checkout Function
 function checkout() {
-    if (cart.length === 0) {
-        alert("Cart is empty!");
-        return;
-    }
+  if (cart.length === 0) {
+    alert("Cart is empty!");
+    return;
+  }
 
-    let total = parseFloat(document.getElementById("total").textContent);
-    let itemsSold = cart.length;
-    alert("Thank you for your purchase! Total: $" + total.toFixed(2));
+  let total = parseFloat(document.getElementById("total").textContent);
+  alert("Thank you for your purchase! Total: $" + total.toFixed(2));
 
-    let currentDate = new Date().toLocaleDateString();
-    let record = purchaseHistory.find(r => r.date === currentDate);
-    if (record) {
-        record.itemsSold += itemsSold;
-        record.moneyMade += total;
+  let currentDate = new Date().toLocaleDateString();
+  const itemsSummary = cart.reduce((acc, item) => {
+    const existing = acc.find(i => i.name === item.name);
+    if (existing) {
+      existing.quantity += 1;
     } else {
-        purchaseHistory.push({ date: currentDate, itemsSold: itemsSold, moneyMade: total });
+      acc.push({ name: item.name, price: Number(item.price), quantity: 1 });
     }
+    return acc;
+  }, []);
 
-    // Update stock in Google Sheets after purchase
-    updateStockInSheet();
+  let record = purchaseHistory.find(r => r.date === currentDate);
+  if (record) {
+    itemsSummary.forEach(newItem => {
+      const existingItem = record.items.find(i => i.name === newItem.name);
+      if (existingItem) {
+        existingItem.quantity += newItem.quantity;
+      } else {
+        record.items.push(newItem);
+      }
+    });
+    record.itemsSold += cart.length;
+    record.moneyMade += total;
+  } else {
+    purchaseHistory.push({
+      date: currentDate,
+      itemsSold: cart.length,
+      moneyMade: total,
+      items: itemsSummary
+    });
+  }
 
-    // Clear cart and save
-    cart = [];
-    saveData();
-    renderCart();
-    renderItems();
-    renderHistory();
+  updateStockInSheet();
+  cart = [];
+  saveData();
+  renderCart();
+  renderItems();
+  renderHistory();
 }
 
 function updateStockInSheet() {
   const authInstance = gapi.auth2.getAuthInstance();
   if (!authInstance || !authInstance.isSignedIn.get()) {
-    console.error("User not signed in. Prompting sign-in...");
-    authInstance.signIn().then(() => {
-      console.log("Sign-in successful, retrying stock update...");
-      updateStockInSheet(); // Retry after sign-in
-    }).catch(error => {
-      console.error("Sign-in failed:", error);
-    });
+    console.error("User not signed in. Please sign in.");
     return;
   }
   console.log("User is signed in. Updating stock...");
@@ -187,38 +200,48 @@ function calculateChange() {
 
 // Render Purchase History
 function renderHistory() {
-    let historyContainer = document.getElementById("history");
-    if (!historyContainer) {
-        historyContainer = document.createElement("div");
-        historyContainer.id = "history";
-        document.body.appendChild(historyContainer);
-    }
-    historyContainer.innerHTML = "<h2>Purchase History</h2>";
-    if (purchaseHistory.length === 0) {
-        historyContainer.innerHTML += "<p>No purchases yet.</p>";
-        return;
-    }
-    let table = document.createElement("table");
-    table.innerHTML = `
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Items Sold</th>
-                <th>Money Made</th>
-            </tr>
-        </thead>
-        <tbody></tbody>`;
+  let historyContainer = document.getElementById("history");
+  if (!historyContainer) {
+    historyContainer = document.createElement("div");
+    historyContainer.id = "history";
+    document.body.appendChild(historyContainer);
+  }
+  historyContainer.innerHTML = "<h2>Purchase History</h2>";
+  if (purchaseHistory.length === 0) {
+    historyContainer.innerHTML += "<p>No purchases yet.</p>";
+    return;
+  }
 
-    let tbody = table.querySelector("tbody");
-    purchaseHistory.forEach(record => {
-        let tr = document.createElement("tr");
-        tr.innerHTML = `
-            <td>${record.date}</td>
-            <td>${record.itemsSold}</td>
-            <td>$${record.moneyMade.toFixed(2)}</td>`;
-        tbody.appendChild(tr);
+  let table = document.createElement("table");
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Items Sold</th>
+        <th>Total Money</th>
+        <th>Details</th>
+      </tr>
+    </thead>
+    <tbody></tbody>`;
+  
+  let tbody = table.querySelector("tbody");
+  purchaseHistory.forEach(record => {
+    let itemDetails = "<ul>";
+    record.items.forEach(item => {
+      itemDetails += `<li>${item.name} - $${item.price.toFixed(2)} (x${item.quantity})</li>`;
     });
-    historyContainer.appendChild(table);
+    itemDetails += "</ul>";
+
+    let tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${record.date}</td>
+      <td>${record.itemsSold}</td>
+      <td>$${record.moneyMade.toFixed(2)}</td>
+      <td>${itemDetails}</td>`;
+    tbody.appendChild(tr);
+  });
+  
+  historyContainer.appendChild(table);
 }
 
 // Load Data from Google Sheets
@@ -334,19 +357,47 @@ function authenticate() {
           console.error("Error signing in", error);
       });
 }
-function loadClient() {
-  gapi.client.setApiKey(API_KEY);
-  return gapi.client.load("https://sheets.googleapis.com/$discovery/rest?version=v4")
-      .then(function () {
-          console.log("GAPI client loaded for API");
-      }, function (error) {
-          console.error("Error loading GAPI client for API", error);
-      });
+function loadGoogleClient() {
+  function waitForGapi() {
+    if (typeof gapi === 'undefined') {
+      console.log("gapi not loaded yet. Retrying in 500ms...");
+      setTimeout(waitForGapi, 500);
+      return;
+    }
+    gapi.load('client:auth2', initializeGapi);
+  }
+
+  function initializeGapi() {
+    console.log("gapi.client:auth2 loaded.");
+    gapi.client.init({
+      apiKey: 'AIzaSyB5Lbyb7TQ8NFA8rvrOoEbQUY8v-kXt73M',
+      clientId: '438989169136-altbqvh21k2onkpjoqo750gfvjmstade.apps.googleusercontent.com',
+      scope: 'https://www.googleapis.com/auth/spreadsheets',
+      discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4']
+    }).then(() => {
+      console.log("Google API initialized successfully.");
+      const authInstance = gapi.auth2.getAuthInstance();
+      if (!authInstance.isSignedIn.get()) {
+        console.log("User not signed in. Prompting sign-in...");
+        authInstance.signIn().then(() => {
+          console.log("User signed in successfully!");
+          getDataFromSheet();
+        }).catch(error => console.error("Sign-in failed:", error));
+      } else {
+        console.log("User already signed in.");
+        getDataFromSheet();
+      }
+    }).catch(error => console.error("Error initializing Google API:", error));
+  }
+
+  waitForGapi();
 }
 const headers = new Headers({
   "Authorization": `Bearer ${gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().access_token}`
 });
-
+// Initialize Google API client library and authenticate the user
+// Function to initialize the Google API client and authenticate the user
+ // Ensure this is in your index.js
 function loadGoogleClient() {
   if (typeof gapi === 'undefined') {
     console.error("gapi is not loaded. Ensure <script src='https://apis.google.com/js/api.js'> is included.");
