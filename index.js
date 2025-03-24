@@ -1,4 +1,3 @@
-// 1. Global Variables and Constants
 let items = [];
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
 let purchaseHistory = JSON.parse(localStorage.getItem("purchaseHistory")) || [];
@@ -8,7 +7,6 @@ const API_KEY = 'AIzaSyB5Lbyb7TQ8NFA8rvrOoEbQUY8v-kXt73M';
 const SPREADSHEET_ID = '1_Y5zRKs4WMZSMijFbA0_9G0Zl7VvO9X3Oyk8rsDEDJo';
 const RANGE = 'Finances!A1:A37,C1:C37,H1:H37';
 
-// 2. Utility Functions
 function parseJwt(token) {
   const base64Url = token.split('.')[1];
   const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -26,9 +24,8 @@ function getCategory(name) {
   return "chocolate";
 }
 
-// 3. Rendering Functions
 function renderItems() {
-  const itemsDiv = document.getElementById("items"); // Scoped here
+  const itemsDiv = document.getElementById("items");
   if (!itemsDiv) {
     console.error("Items container not found!");
     return;
@@ -80,7 +77,6 @@ function renderHistory() {
     historyContainer.innerHTML += "<p>No purchases yet.</p>";
     return;
   }
-
   let table = document.createElement("table");
   table.innerHTML = `
     <thead>
@@ -92,7 +88,6 @@ function renderHistory() {
       </tr>
     </thead>
     <tbody></tbody>`;
-  
   let tbody = table.querySelector("tbody");
   purchaseHistory.forEach(record => {
     let itemDetails = "<ul>";
@@ -100,7 +95,6 @@ function renderHistory() {
       itemDetails += `<li>${item.name} - $${item.price.toFixed(2)} (x${item.quantity})</li>`;
     });
     itemDetails += "</ul>";
-
     let tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${record.date}</td>
@@ -112,7 +106,6 @@ function renderHistory() {
   historyContainer.appendChild(table);
 }
 
-// 4. Action Functions
 function addToCart(index) {
   const item = items[index];
   if (item.stock > 0) {
@@ -153,10 +146,8 @@ function checkout() {
     alert("Cart is empty!");
     return;
   }
-
   let total = parseFloat(document.getElementById("total").textContent);
   alert("Thank you for your purchase! Total: $" + total.toFixed(2));
-
   let currentDate = new Date().toLocaleDateString();
   const itemsSummary = cart.reduce((acc, item) => {
     const existing = acc.find(i => i.name === item.name);
@@ -164,7 +155,6 @@ function checkout() {
     else acc.push({ name: item.name, price: Number(item.price), quantity: 1 });
     return acc;
   }, []);
-
   let record = purchaseHistory.find(r => r.date === currentDate);
   if (record) {
     itemsSummary.forEach(newItem => {
@@ -182,13 +172,11 @@ function checkout() {
       items: itemsSummary
     });
   }
-
   if (typeof gapi === 'undefined' || !gapi.auth2) {
     console.log("Google API not ready yet. Waiting...");
     setTimeout(() => checkout(), 500);
     return;
   }
-
   updateStockInSheet();
   cart = [];
   saveData();
@@ -213,14 +201,12 @@ function calculateChange() {
   document.getElementById("change-breakdown").textContent = change.toFixed(2);
 }
 
-// 5. Google API Functions
 function handleCredentialResponse(response) {
   console.log("Encoded JWT ID token:", response.credential);
   const user = parseJwt(response.credential);
   console.log("User Info:", user);
   if (user.email_verified && user.email === "ncote@evoyageur.ca") {
     console.log("Login successful!");
-    // loadGoogleClient() is already called on DOMContentLoaded, no need to call here
   } else {
     alert("Unauthorized access. Please use an authorized account.");
   }
@@ -241,9 +227,9 @@ function getDataFromSheet() {
 }
 
 function updateItems(data) {
-  const columnA = data[0].values; // Item names
-  const columnC = data[1].values; // Prices
-  const columnH = data[2].values; // Stock quantities
+  const columnA = data[0].values;
+  const columnC = data[1].values;
+  const columnH = data[2].values;
   items = columnA.slice(1).map((name, index) => ({
     name: name[0],
     price: parseFloat(columnC[index + 1][0]),
@@ -257,7 +243,6 @@ function updateStockInSheet() {
     console.error("gapi.auth2 not available. Ensure Google API is loaded.");
     return;
   }
-
   const authInstance = gapi.auth2.getAuthInstance();
   if (!authInstance || !authInstance.isSignedIn.get()) {
     console.error("User not signed in. Prompting sign-in...");
@@ -268,7 +253,6 @@ function updateStockInSheet() {
     }).catch(error => console.error("Sign-in failed in updateStockInSheet:", error));
     return;
   }
-
   const token = authInstance.currentUser.get().getAuthResponse().access_token;
   updateStockWithToken(token);
 }
@@ -281,10 +265,8 @@ function updateStockWithToken(token) {
     majorDimension: "COLUMNS",
     values: updatedStock
   };
-
   console.log("OAuth Token:", token);
   console.log("Request Body:", requestBody);
-
   fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${range}?valueInputOption=RAW`, {
     method: "PUT",
     headers: {
@@ -341,10 +323,10 @@ function loadGoogleClient() {
   waitForGapi();
 }
 
-// 6. Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
   console.log("DOM loaded. Starting Google Client load...");
   loadGoogleClient();
   renderCart();
   renderHistory();
+  document.getElementById('checkout-btn').addEventListener('click', checkout); // Event listener for checkout
 });
