@@ -262,13 +262,18 @@ function updateStockInSheet() {
   if (!authInstance || !authInstance.isSignedIn.get()) {
     console.error("User not signed in. Prompting sign-in...");
     authInstance.signIn().then(() => {
-      console.log("Sign-in successful, retrying stock update...");
-      updateStockInSheet();
-    }).catch(error => console.error("Sign-in failed:", error));
+      console.log("Sign-in successful, updating stock...");
+      const token = authInstance.currentUser.get().getAuthResponse().access_token;
+      updateStockWithToken(token);
+    }).catch(error => console.error("Sign-in failed in updateStockInSheet:", error));
     return;
   }
 
   const token = authInstance.currentUser.get().getAuthResponse().access_token;
+  updateStockWithToken(token);
+}
+
+function updateStockWithToken(token) {
   const updatedStock = [items.map(item => item.stock)];
   const range = `Finances!H2:H${items.length + 1}`;
   const requestBody = {
@@ -322,12 +327,15 @@ function loadGoogleClient() {
         authInstance.signIn().then(() => {
           console.log("User signed in successfully!");
           getDataFromSheet();
-        }).catch(error => console.error("Sign-in failed:", error));
+        }).catch(error => console.error("Initial sign-in failed:", error));
       } else {
         console.log("User already signed in.");
         getDataFromSheet();
       }
-    }).catch(error => console.error("Error initializing Google API:", error));
+    }).catch(error => {
+      console.error("Detailed error initializing Google API:", error);
+      console.log("Error details:", JSON.stringify(error, null, 2));
+    });
   }
 
   waitForGapi();
