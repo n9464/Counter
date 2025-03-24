@@ -104,11 +104,8 @@ function checkout() {
   let currentDate = new Date().toLocaleDateString();
   const itemsSummary = cart.reduce((acc, item) => {
     const existing = acc.find(i => i.name === item.name);
-    if (existing) {
-      existing.quantity += 1;
-    } else {
-      acc.push({ name: item.name, price: Number(item.price), quantity: 1 });
-    }
+    if (existing) existing.quantity += 1;
+    else acc.push({ name: item.name, price: Number(item.price), quantity: 1 });
     return acc;
   }, []);
 
@@ -116,11 +113,8 @@ function checkout() {
   if (record) {
     itemsSummary.forEach(newItem => {
       const existingItem = record.items.find(i => i.name === newItem.name);
-      if (existingItem) {
-        existingItem.quantity += newItem.quantity;
-      } else {
-        record.items.push(newItem);
-      }
+      if (existingItem) existingItem.quantity += newItem.quantity;
+      else record.items.push(newItem);
     });
     record.itemsSold += cart.length;
     record.moneyMade += total;
@@ -133,6 +127,13 @@ function checkout() {
     });
   }
 
+  // Wait for Google API to be ready before updating stock
+  if (typeof gapi === 'undefined' || !gapi.auth2) {
+    console.log("Google API not ready yet. Waiting...");
+    setTimeout(() => checkout(), 500); // Retry after 500ms
+    return;
+  }
+
   updateStockInSheet();
   cart = [];
   saveData();
@@ -142,39 +143,49 @@ function checkout() {
 }
 
 function updateStockInSheet() {
-  const authInstance = gapi.auth2.getAuthInstance();
-  if (!authInstance || !authInstance.isSignedIn.get()) {
-    console.error("User not signed in. Please sign in.");
+  if (typeof gapi === 'undefined' || !gapi.auth2) {
+    console.error("gapi.auth2 not available. Ensure Google API is loaded.");
     return;
   }
-  console.log("User is signed in. Updating stock...");
+
+  const authInstance = gapi.auth2.getAuthInstance();
+  if (!authInstance || !authInstance.isSignedIn.get()) {
+    console.error("User not signed in. Prompting sign-in...");
+    authInstance.signIn().then(() => {
+      console.log("Sign-in successful, retrying stock update...");
+      updateStockInSheet();
+    }).catch(error => console.error("Sign-in failed:", error));
+    return;
+  }
+
+  const token = authInstance.currentUser.get().getAuthResponse().access_token; // Get token here
   const updatedStock = [items.map(item => item.stock)];
-  const range = `Finances!H2:H${items.length + 1}`; // Dynamic range
+  const range = `Finances!H2:H${items.length + 1}`;
   const requestBody = {
     range: range,
     majorDimension: "COLUMNS",
     values: updatedStock
   };
-  const token = authInstance.currentUser.get().getAuthResponse().access_token;
+
   console.log("OAuth Token:", token);
   console.log("Request Body:", requestBody);
 
   fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${range}?valueInputOption=RAW`, {
     method: "PUT",
     headers: {
-      "Authorization": `Bearer ${token}`,
-      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`, // Line ~396, now safe
+      "Content-Type": "application/json"
     },
     body: JSON.stringify(requestBody)
   })
   .then(response => {
     if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
+      return response.text().then(text => { throw new Error(`HTTP ${response.status}: ${text}`); });
     }
     return response.json();
   })
   .then(data => console.log("Stock updated successfully:", data))
-  .catch(error => console.error("Error updating stock:", error));
+  .catch(error => console.error("Update failed:", error));
 }
 
 // Cash Handling
@@ -392,22 +403,22 @@ function loadGoogleClient() {
 
   waitForGapi();
 }
-const headers = new Headers({
-  "Authorization": `Bearer ${gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().access_token}`
-});
-// Initialize Google API client library and authenticate the user
-// Function to initialize the Google API client and authenticate the user
- // Ensure this is in your index.js
-function loadGoogleClient() {
-  if (typeof gapi === 'undefined') {
-    console.error("gapi is not loaded. Ensure <script src='https://apis.google.com/js/api.js'> is included.");
-    return;
+
+ function loadGoogleClient() {
+  function waitForGapi() {
+    if (typeof gapi === 'undefined') {
+      console.log("gapi not loaded yet. Retrying in 500ms...");
+      setTimeout(waitForGapi, 500);
+      return;
+    }
+    console.log("gapi is available. Loading client:auth2...");
+    gapi.load('client:auth2', initializeGapi);
   }
 
-  gapi.load('client:auth2', () => {
+  function initializeGapi() {
     console.log("gapi.client:auth2 loaded.");
     gapi.client.init({
-      apiKey: 'AIzaSyB5Lbyb7TQ8NFA8rvrOoEbQUY8v-kXt73M', // Your API key
+      apiKey: 'AIzaSyB5Lbyb7TQ8NFA8rvrOoEbQUY8v-kXt73M',
       clientId: '438989169136-altbqvh21k2onkpjoqo750gfvjmstade.apps.googleusercontent.com',
       scope: 'https://www.googleapis.com/auth/spreadsheets',
       discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4']
@@ -418,22 +429,21 @@ function loadGoogleClient() {
         console.log("User not signed in. Prompting sign-in...");
         authInstance.signIn().then(() => {
           console.log("User signed in successfully!");
-          getDataFromSheet(); // Load initial data
-        }).catch(error => {
-          console.error("Sign-in failed:", error);
-        });
+          getDataFromSheet();
+        }).catch(error => console.error("Sign-in failed:", error));
       } else {
         console.log("User already signed in.");
         getDataFromSheet();
       }
-    }).catch(error => {
-      console.error("Error initializing Google API:", error);
-    });
-  });
+    }).catch(error => console.error("Error initializing Google API:", error));
+  }
+
+  waitForGapi();
 }
 
-// Call this only after the DOM and gapi script are loaded
 document.addEventListener('DOMContentLoaded', () => {
-  console.log("DOM fully loaded. Loading Google Client...");
+  console.log("DOM loaded. Starting Google Client load...");
   loadGoogleClient();
+  renderCart();
+  renderHistory();
 });
