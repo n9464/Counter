@@ -346,9 +346,7 @@ function loadClient() {
 const headers = new Headers({
   "Authorization": `Bearer ${gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().access_token}`
 });
-// Initialize Google API client library and authenticate the user
-// Function to initialize the Google API client and authenticate the user
- // Ensure this is in your index.js
+
 function loadGoogleClient() {
   if (typeof gapi === 'undefined') {
     console.error("gapi is not loaded. Ensure <script src='https://apis.google.com/js/api.js'> is included.");
