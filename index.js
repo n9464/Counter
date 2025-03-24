@@ -1,36 +1,37 @@
-// API Key and Google Sheets Info
-const API_KEY = 'AIzaSyB5Lbyb7TQ8NFA8rvrOoEbQUY8v-kXt73M';
-const SPREADSHEET_ID = '1_Y5zRKs4WMZSMijFbA0_9G0Zl7vO9X3Oyk8rsDEDJo';
-
 // Global variables
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
 let purchaseHistory = JSON.parse(localStorage.getItem("purchaseHistory")) || [];
-let items = []; // Define items globally
-let accessToken = null; // Store the access token after login
+let items = [];
+let accessToken = null;
+const SPREADSHEET_ID = '1_Y5zRKs4WMZSMijFbA0_9G0Zl7VvO9X3Oyk8rsDEDJo'; // Replace with your spreadsheet ID
+let cashGiven = 0;
 
-// Handle Google Sign-In Response
-function handleCredentialResponse(response) {
-    const user = parseJwt(response.credential);
-    console.log("User Info:", user);
+// Initialize Google Auth2
+gapi.load('auth2', function() {
+    gapi.auth2.init({
+        client_id: '438989169136-altbqvh21k2onkpjoqo750gfvjmstade.apps.googleusercontent.com',
+        scope: 'https://www.googleapis.com/auth/spreadsheets'
+    });
+});
 
-    if (user.email_verified && user.email === "ncote@evoyageur.ca") {
-        console.log("Login successful!");
-        accessToken = response.access_token; // Store the access token
-        getDataFromSheet(); // Load data after successful login
-    } else {
-        alert("Unauthorized access. Please use an authorized account.");
-    }
+// Sign in with Google
+function signIn() {
+    const auth2 = gapi.auth2.getAuthInstance();
+    auth2.signIn().then(function(googleUser) {
+        const profile = googleUser.getBasicProfile();
+        if (profile.getEmail() === 'ncote@evoyageur.ca') {
+            accessToken = googleUser.getAuthResponse().access_token;
+            console.log("Login successful! Access token:", accessToken);
+            getDataFromSheet();
+        } else {
+            alert("Unauthorized access. Please use an authorized account.");
+        }
+    }).catch(function(error) {
+        console.error("Sign-in failed:", error);
+    });
 }
 
-// Decode JWT to get user info
-function parseJwt(token) {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
-    return JSON.parse(jsonPayload);
-}
-
-// Fetch Data from Google Sheets
+// Fetch data from Google Sheet
 function getDataFromSheet() {
     if (!accessToken) {
         console.log("Please sign in to load data.");
@@ -56,7 +57,7 @@ function getDataFromSheet() {
     .catch(error => console.error('Error:', error));
 }
 
-// Update Items Array with Google Sheets Data
+// Parse sheet data into items array
 function updateItems(data) {
     const columnA = data[0].values; // Item names
     const columnC = data[1].values; // Prices
@@ -70,36 +71,18 @@ function updateItems(data) {
     }));
 }
 
-// Update Stock in Google Sheets
-function updateStockInSheet() {
-    if (!accessToken) {
-        console.error("Please sign in to update stock.");
-        return;
-    }
-    const stockArray = items.map(item => item.stock);
-    const requestBody = {
-        range: "Finances!H2:H37",
-        majorDimension: "COLUMNS",
-        values: [stockArray]
-    };
-
-    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Finances!H2:H37?valueInputOption=RAW`, {
-        method: "PUT",
-        headers: {
-            "Authorization": `Bearer ${accessToken}`,
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(requestBody)
-    })
-    .then(response => {
-        if (!response.ok) throw new Error(`Error: ${response.status}`);
-        return response.json();
-    })
-    .then(data => console.log("Stock updated successfully:", data))
-    .catch(error => console.error("Error updating stock:", error));
+// Determine item category
+function getCategory(name) {
+    if (["Maynards", "Mini chocolat", "Jolly Rancher", "Lolly", "Chupa"].some(candy => name.includes(candy))) return "candy";
+    if (name.includes("Mr")) return "noodles";
+    if (["Crush", "Coke", "Sprite", "Rootbeer", "Dr Pepper", "Canada"].some(drink => name.includes(drink))) return "pop";
+    if (name.includes("Gatorade")) return "gatorade";
+    if (["Lays", "Doritos", "Cheetos", "Ruffles"].some(chip => name.includes(chip))) return "chips";
+    if (name.includes("Popcorn")) return "snack";
+    return "chocolate";
 }
 
-// Render Items Grid
+// Render items in the grid
 function renderItems() {
     const itemsDiv = document.getElementById("items");
     if (!itemsDiv || !items.length) return;
@@ -125,7 +108,7 @@ function renderItems() {
     });
 }
 
-// Add to Cart
+// Add item to cart
 function addToCart(index) {
     const item = items[index];
     if (item.stock > 0) {
@@ -137,7 +120,7 @@ function addToCart(index) {
     }
 }
 
-// Render Cart
+// Render cart
 function renderCart() {
     const cartUl = document.getElementById("cart");
     let total = 0;
@@ -148,10 +131,10 @@ function renderCart() {
         <button onclick="removeFromCart(${index})">Remove</button></li>`;
     });
     document.getElementById("total").textContent = total.toFixed(2);
-    calculateChange(); // Update change when cart changes
+    calculateChange();
 }
 
-// Remove from Cart
+// Remove item from cart
 function removeFromCart(index) {
     const item = cart[index];
     const product = items.find(i => i.name === item.name);
@@ -162,7 +145,7 @@ function removeFromCart(index) {
     renderItems();
 }
 
-// Edit Stock Manually
+// Edit stock manually
 function editStock(index) {
     const newStock = prompt("Enter new stock amount:");
     if (newStock !== null && !isNaN(newStock)) {
@@ -172,13 +155,13 @@ function editStock(index) {
     }
 }
 
-// Save Data Locally
+// Save data to localStorage
 function saveData() {
     localStorage.setItem("cart", JSON.stringify(cart));
     localStorage.setItem("purchaseHistory", JSON.stringify(purchaseHistory));
 }
 
-// Checkout Function
+// Handle checkout
 function checkout() {
     if (cart.length === 0) {
         alert("Cart is empty!");
@@ -212,25 +195,52 @@ function checkout() {
     renderHistory();
 }
 
-// Cash Handling
-let cashGiven = 0;
+// Update stock in Google Sheet
+function updateStockInSheet() {
+    if (!accessToken) {
+        console.error("Please sign in to update stock.");
+        return;
+    }
+    const stockArray = items.map(item => item.stock);
+    const requestBody = {
+        range: "Finances!H2:H37",
+        majorDimension: "COLUMNS",
+        values: [stockArray]
+    };
 
+    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Finances!H2:H37?valueInputOption=RAW`, {
+        method: "PUT",
+        headers: {
+            "Authorization": `Bearer ${accessToken}`,
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(requestBody)
+    })
+    .then(response => {
+        if (!response.ok) throw new Error(`Error: ${response.status}`);
+        return response.json();
+    })
+    .then(data => console.log("Stock updated successfully:", data))
+    .catch(error => console.error("Error updating stock:", error));
+}
+
+// Handle cash selection
 function selectCash(amount) {
     cashGiven += amount;
     document.getElementById("cash-given").textContent = cashGiven.toFixed(2);
     calculateChange();
 }
 
+// Calculate change
 function calculateChange() {
     const total = parseFloat(document.getElementById("total").textContent);
     const change = cashGiven - total;
     document.getElementById("change-breakdown").textContent = change >= 0 ? change.toFixed(2) : "Not enough cash.";
 }
 
-// Render Purchase History
+// Render purchase history
 function renderHistory() {
-    let historyContainer = document.getElementById("history") || document.createElement("div");
-    historyContainer.id = "history";
+    let historyContainer = document.getElementById("history");
     historyContainer.innerHTML = "<h2>Purchase History</h2>";
     if (purchaseHistory.length === 0) {
         historyContainer.innerHTML += "<p>No purchases yet.</p>";
@@ -242,23 +252,10 @@ function renderHistory() {
         table += `</tbody></table>`;
         historyContainer.innerHTML += table;
     }
-    if (!document.getElementById("history")) document.body.appendChild(historyContainer);
 }
 
-// Get Category Based on Item Name
-function getCategory(name) {
-    if (["Maynards", "Mini chocolat", "Jolly Rancher", "Lolly", "Chupa"].some(candy => name.includes(candy))) return "candy";
-    if (name.includes("Mr")) return "noodles";
-    if (["Crush", "Coke", "Sprite", "Rootbeer", "Dr Pepper", "Canada"].some(drink => name.includes(drink))) return "pop";
-    if (name.includes("Gatorade")) return "gatorade";
-    if (["Lays", "Doritos", "Cheetos", "Ruffles"].some(chip => name.includes(chip))) return "chips";
-    if (name.includes("Popcorn")) return "snack";
-    return "chocolate";
-}
-
-// Initial Render
+// Initialize on page load
 document.addEventListener("DOMContentLoaded", () => {
     renderCart();
     renderHistory();
-    // Data loads after sign-in via handleCredentialResponse
 });
