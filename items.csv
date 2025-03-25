@@ -1,0 +1,37 @@
+Name,Price,Stock,Category
+Maynards,0.30,77,candy
+Mini chocolat,0.30,54,candy
+Jolly Rancher,0.30,84,candy
+Lolly pops,0.30,103,candy
+Chupa Chups,0.30,38,candy
+Mr Vegy,1.50,3,noodles
+Mr Beef,1.50,3,noodles
+Mr Spicy,1.50,5,noodles
+Mr Chicken,1.50,5,noodles
+Sprite,1.25,19,pop
+Coke,1.25,10,pop
+Rootbeer,1.25,0,pop
+Dr Pepper,1.25,4,pop
+Crush Orange,1.25,7,pop
+Crush Rose,1.25,4,pop
+Crush Mauve,1.25,0,pop
+Canada dry,1.25,10,pop
+Gatorade Bleu,1.50,0,gatorade
+Gatorade Rouge,1.50,3,gatorade
+Gatorade Orange,1.50,8,gatorade
+Gatorade Jaune,1.50,7,gatorade
+Lays BBQ,0.75,18,chips
+Lays Classic,0.75,5,chips
+Doritos,0.75,4,chips
+Cheetos,0.75,16,chips
+Ruffles All Dressed,0.75,14,chips
+Ruffles Sour/Onion,0.75,17,chips
+Snickers,1.50,4,chocolate
+Cookie & Cream,1.50,0,chocolate
+Oh Henry,1.50,3,chocolate
+Mars,1.50,0,chocolate
+Hersheys,1.50,2,chocolate
+Twix,1.50,0,chocolate
+Aero,1.50,0,chocolate
+Aero Mint,1.50,0,chocolate
+Popcorn,1.00,187,popcorn
