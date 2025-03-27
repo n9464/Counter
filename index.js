@@ -28,6 +28,8 @@ async function fetchItems() {
   try {
     const querySnapshot = await db.collection('items').get();
     items = querySnapshot.docs.map(doc => doc.data());
+    // Sort the items array by category so items in the same category are grouped together.
+    items.sort((a, b) => a.category.localeCompare(b.category));
     displayItems();
   } catch (error) {
     console.error('Error loading items:', error);
