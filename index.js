@@ -1,4 +1,3 @@
-
 const firebaseConfig = {
   apiKey: "AIzaSyCZdd01uYMq2b3pACHRgJQ7xtQJ6D2kGf8",
   authDomain: "canteen-tracker.firebaseapp.com",
@@ -18,9 +17,10 @@ let items = [];
 let cart = [];
 let cashGiven = 0;
 
-// Load items from Firestore when the page loads
+// Load items and sales report when the page loads
 document.addEventListener('DOMContentLoaded', () => {
   fetchItems();
+  displaySalesReport(); // Fetch daily sales report
 });
 
 // Fetch items from Firestore
@@ -28,8 +28,7 @@ async function fetchItems() {
   try {
     const querySnapshot = await db.collection('items').get();
     items = querySnapshot.docs.map(doc => doc.data());
-    // Sort the items array by category so items in the same category are grouped together.
-    items.sort((a, b) => a.category.localeCompare(b.category));
+    items.sort((a, b) => a.category.localeCompare(b.category)); // Sort by category
     displayItems();
   } catch (error) {
     console.error('Error loading items:', error);
@@ -120,14 +119,19 @@ function removeFromCart(index) {
 // Handle checkout and update Firestore
 async function checkout() {
   const total = parseFloat(document.getElementById('total').innerText);
+  if (total === 0) {
+    alert("Cart is empty!");
+    return;
+  }
+
   alert('Order placed successfully!');
 
-  // Update stock in Firestore after checkout
   await updateStock();
+  await updateSalesReport(cart, total);
   resetCart();
 }
 
-// Send updated stock to Firestore
+// Update stock in Firestore after checkout
 async function updateStock() {
   try {
     const batch = db.batch();
@@ -137,31 +141,72 @@ async function updateStock() {
       batch.update(itemRef, { stock: item.stock });
     });
 
-    await batch.commit(); // Commit all updates at once
+    await batch.commit();
     console.log('Stock updated successfully.');
   } catch (error) {
     console.error('Error updating stock:', error);
   }
 }
 
-// Format change breakdown
-function formatChange(change) {
-  const denominations = [50, 20, 10, 5, 2, 1, 0.25, 0.1, 0.05];
-  let breakdown = '';
-  denominations.forEach((value) => {
-    const count = Math.floor(change / value);
-    if (count > 0) {
-      breakdown += `$${value.toFixed(2)} x ${count}\n`;
-      change -= count * value;
+// 📌 Update Firestore with daily sales report
+async function updateSalesReport(cart, totalRevenue) {
+  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+  const reportRef = db.collection('salesReports').doc(today);
+
+  try {
+    const doc = await reportRef.get();
+    let reportData = { date: today, totalRevenue: 0, itemsSold: {} };
+
+    if (doc.exists) {
+      reportData = doc.data();
     }
-  });
-  return breakdown || 'No change';
+
+    cart.forEach(item => {
+      if (reportData.itemsSold[item.name]) {
+        reportData.itemsSold[item.name] += item.quantity;
+      } else {
+        reportData.itemsSold[item.name] = item.quantity;
+      }
+    });
+
+    reportData.totalRevenue += totalRevenue;
+
+    await reportRef.set(reportData);
+    displaySalesReport();
+    console.log('Sales report updated.');
+  } catch (error) {
+    console.error('Error updating sales report:', error);
+  }
 }
 
-// Select cash given
-function selectCash(amount) {
-  cashGiven += amount;
-  document.getElementById('cash-given').innerText = cashGiven.toFixed(2);
+// 📌 Fetch and display sales report
+async function displaySalesReport() {
+  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+  const reportRef = db.collection('salesReports').doc(today);
+  const reportContainer = document.getElementById('data-display');
+
+  try {
+    const doc = await reportRef.get();
+    if (doc.exists) {
+      const report = doc.data();
+      let reportHTML = `
+        <h3>Sales Report for ${report.date}</h3>
+        <p><strong>Total Revenue:</strong> $${report.totalRevenue.toFixed(2)}</p>
+        <h4>Items Sold:</h4>
+        <ul>
+      `;
+      Object.entries(report.itemsSold).forEach(([name, quantity]) => {
+        reportHTML += `<li>${name}: ${quantity} sold</li>`;
+      });
+      reportHTML += `</ul>`;
+
+      reportContainer.innerHTML = reportHTML;
+    } else {
+      reportContainer.innerHTML = `<p>No sales recorded for today.</p>`;
+    }
+  } catch (error) {
+    console.error('Error fetching sales report:', error);
+  }
 }
 
 // Reset cart and cash after checkout
@@ -181,7 +226,7 @@ function editStock(index) {
   if (!isNaN(newStock) && newStock >= 0) {
     items[index].stock = newStock;
     displayItems();
-    updateStock(); // Update stock after editing
+    updateStock();
   } else {
     alert('Invalid stock value');
   }

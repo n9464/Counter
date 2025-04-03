@@ -25,36 +25,49 @@
         <!-- Left Panel: Legend, Cash Selection, and Cart -->
         <div class="left-panel">
             <div class="legend">
-                <h4>Legend</h4>
                 <div class="legend-items">
                     <div class="legend-item">
-                        <div class="legend-color" style="background-color: #f39c12;"></div>
+                        <div class="legend-color" style="border: 3px solid #ff5733; background-color: #ffe0d6;"></div>
                         <span>Candy</span>
                     </div>
                     <div class="legend-item">
-                        <div class="legend-color" style="background-color: #99f312;"></div>
+                        <div class="legend-color" style="border: 3px solid #7fff00; background-color: #e6f7cc;"></div>
                         <span>Noodles</span>
                     </div>
                     <div class="legend-item">
-                        <div class="legend-color" style="background-color: #e74c3c;"></div>
+                        <div class="legend-color" style="border: 3px solid #5733ff; background-color: #ddd6ff;"></div>
                         <span>Pop</span>
                     </div>
                     <div class="legend-item">
-                        <div class="legend-color" style="background-color: #3498db;"></div>
+                        <div class="legend-color" style="border: 3px solid #00ffff; background-color: #d6faff;"></div>
                         <span>Gatorade</span>
                     </div>
                     <div class="legend-item">
-                        <div class="legend-color" style="background-color: #f1c40f;"></div>
+                        <div class="legend-color" style="border: 3px solid #ffff00; background-color: #fff7cc;"></div>
                         <span>Chips</span>
                     </div>
                     <div class="legend-item">
-                        <div class="legend-color" style="background-color: #8e44ad;"></div>
+                        <div class="legend-color" style="border: 3px solid #800000; background-color: #ebd6d6;"></div>
                         <span>Chocolate</span>
                     </div>
                     <div class="legend-item">
-                        <div class="legend-color" style="background-color: #2ecc71;"></div>
-                        <span>Popcorn</span>
+                        <div class="legend-color" style="border: 3px solid #ff00ff; background-color: #f8d6f8;"></div>
+                        <span>Snack</span>
                     </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="border: 3px solid #3f3f3f; background-color: #adadad;"></div>
+                        <span>Juice</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="border: 3px solid #ff1493; background-color: #fbd6e6;"></div>
+                        <span>Pop Tarts</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="border: 3px solid #ff4500; background-color: #ffe6d6;"></div>
+                        <span>Frozen Yogurt</span>
+                    </div>
+                    
+                    
                 </div>
             </div>
             <div class="cash-selection">
@@ -65,8 +78,6 @@
                     <button onclick="selectCash(0.25)">0.25</button>
                     <button onclick="selectCash(1)">1</button>
                     <button onclick="selectCash(2)">2</button>
-                </div>
-                <div>
                     <button onclick="selectCash(5)">5</button>
                     <button onclick="selectCash(10)">10</button>
                     <button onclick="selectCash(20)">20</button>
@@ -93,7 +104,9 @@
     </div>
 
     <div id="data-display"></div>
-
+    <div id="report-container">
+        
+    </div>
     <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore-compat.js"></script>
 

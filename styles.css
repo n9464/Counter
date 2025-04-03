@@ -20,7 +20,7 @@ body {
 /* Vertical Divider */
 .divider {
   width: 2px;
-  background-color: #ccc;
+  background-color:rgb(0, 0, 0);
   align-self: stretch;
 }
 
@@ -36,10 +36,6 @@ body {
   margin-bottom: 10px;
 }
 
-.legend h4 {
-  margin: 0 0 10px 0;
-  font-size: 14px;
-}
 
 /* Legend grid: two items per row */
 .legend-items {
@@ -63,6 +59,7 @@ body {
 /* Cash Selection Styles */
 .cash-selection,
 #cart-container {
+  align-items: center;
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
@@ -143,14 +140,50 @@ body {
   cursor: not-allowed;
 }
 
-/* Category Background and Border Colors */
-.candy { border-color: #f39c12; }
-.noodles { border-color: #99f312; }
-.pop { border-color: #e74c3c; }
-.gatorade { border-color: #3498db; }
-.chips { border-color: #f1c40f; }
-.chocolate { border-color: #8e44ad; }
-.popcorn { border-color: #2ecc71; }
+.candy { 
+  border-color: #ff5733;   /* Bright Orange-Red */
+  background-color: #ffe0d6; /* Very Muted Orange-Red */
+}     
+.noodles { 
+  border-color: #7fff00;   /* Chartreuse */
+  background-color: #e6f7cc; /* Very Muted Chartreuse */
+}   
+.pop { 
+  border-color: #5733ff;   /* Strong Blue-Purple */
+  background-color: #ddd6ff; /* Very Muted Blue-Purple */
+}       
+.gatorade { 
+  border-color: #00ffff;   /* Cyan */
+  background-color: #d6faff; /* Very Muted Cyan */
+}  
+.chips { 
+  border-color: #ffff00;   /* Pure Yellow */
+  background-color: #fff7cc; /* Very Muted Yellow */
+}     
+.chocolate { 
+  border-color: #800000;   /* Dark Maroon */
+  background-color: #ebd6d6; /* Very Muted Maroon */
+} 
+.popcorn { 
+  border-color: #ff00ff;   /* Magenta */
+  background-color: #f8d6f8; /* Very Muted Magenta */
+}   
+.juice { 
+  border-color: #4d4d4d;   /* Pure Blue */
+  background-color: #b3b3b3; /* Very Muted Blue */
+}     
+.tart { 
+  border-color: #ff1493;   /* Deep Pink */
+  background-color: #fbd6e6; /* Very Muted Deep Pink */
+}      
+.tube { 
+  border-color: #ff4500;   /* Bright Orange-Red */
+  background-color: #ffe6d6; /* Very Muted Orange */
+}      
+     
+
+
+
 
 /* Container for the icon buttons */
 .item-actions {

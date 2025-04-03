@@ -1,37 +1,46 @@
 Name,Price,Stock,Category
-Maynards,0.30,77,candy
-Mini chocolat,0.30,54,candy
-Jolly Rancher,0.30,84,candy
-Lolly pops,0.30,103,candy
-Chupa Chups,0.30,38,candy
-Mr Vegy,1.50,3,noodles
-Mr Beef,1.50,3,noodles
-Mr Spicy,1.50,5,noodles
-Mr Chicken,1.50,5,noodles
-Sprite,1.25,19,pop
-Coke,1.25,10,pop
-Rootbeer,1.25,0,pop
-Dr Pepper,1.25,4,pop
-Crush Orange,1.25,7,pop
-Crush Rose,1.25,4,pop
-Crush Mauve,1.25,0,pop
-Canada dry,1.25,10,pop
-Gatorade Bleu,1.50,0,gatorade
-Gatorade Rouge,1.50,3,gatorade
-Gatorade Orange,1.50,8,gatorade
-Gatorade Jaune,1.50,7,gatorade
-Lays BBQ,0.75,18,chips
-Lays Classic,0.75,5,chips
-Doritos,0.75,4,chips
-Cheetos,0.75,16,chips
-Ruffles All Dressed,0.75,14,chips
-Ruffles Sour/Onion,0.75,17,chips
-Snickers,1.50,4,chocolate
-Cookie & Cream,1.50,0,chocolate
-Oh Henry,1.50,3,chocolate
-Mars,1.50,0,chocolate
-Hersheys,1.50,2,chocolate
-Twix,1.50,0,chocolate
-Aero,1.50,0,chocolate
-Aero Mint,1.50,0,chocolate
-Popcorn,1.00,187,popcorn
+Maynards,0.30,72,Candy
+Mini chocolat,0.30,54,Candy
+Jolly Rancher,0.30,55,Candy
+Lolly pops,0.30,103,Candy
+Chupa Chups,0.30,26,Candy
+Mr Vegy,1.50,4,Noodles
+Mr Beef,1.50,7,Noodles
+Mr Spicy,1.50,6,Noodles
+Mr Chicken,1.50,6,Noodles
+Sprite,1.25,15,Pop
+Coke,1.25,9,Pop
+Rootbeer,1.25,15,Pop
+Dr Pepper,1.25,14,Pop
+Crush Orange,1.25,9,Pop
+Crush Rose,1.25,2,Pop
+Crush Mauve,1.25,6,Pop
+Canada dry,1.25,7,Pop
+Gatorade Bleu,1.50,15,Gatorade
+Gatorade Rouge,1.50,7,Gatorade
+Gatorade Orange,1.50,15,Gatorade
+Gatorade Jaune,1.50,12,Gatorade
+Lays BBQ,0.75,14,Chips
+Lays Classic,0.75,2,Chips
+Doritos,0.75,2,Chips
+Cheetos,0.75,13,Chips
+Ruffles All Dressed,0.75,12,Chips
+Ruffles Sour/Onion,0.75,12,Chips
+Snickers,1.50,4,Chocolate
+Cookie & Cream,1.50,5,Chocolate
+Oh Henry,1.50,3,Chocolate
+Mars,1.50,7,Chocolate
+Hersheys,1.50,10,Chocolate
+Twix,1.50,7,Chocolate
+Aero,1.50,12,Chocolate
+Aero Mint,1.50,6,Chocolate
+Popcorn,1.00,183,Snack
+Pop-smores,1.00,4,Pop Tarts
+Pop-fudge,1.00,4,Pop Tarts
+Tubes-Rasberry,0.75,8,Yogurt
+Tubes-Vanilla,0.75,8,Yogurt
+Tubes-Strawberry,0.75,8,Yogurt
+Seaweed,0.75,12,Snack
+Iced Tea,0.65,10,Juice
+Peach Punch,0.65,10,Juice
+Fruit Punch,0.65,10,Juice
