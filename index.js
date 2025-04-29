@@ -1,3 +1,4 @@
+// Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyCZdd01uYMq2b3pACHRgJQ7xtQJ6D2kGf8",
   authDomain: "canteen-tracker.firebaseapp.com",
@@ -8,7 +9,7 @@ const firebaseConfig = {
   measurementId: "G-1NPKZBZMM6"
 };
 
-// Initialize Firebase app
+// Initialize Firebase
 const app = firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore(app);
 
@@ -23,11 +24,11 @@ document.addEventListener('DOMContentLoaded', () => {
   displaySalesReport(); // Fetch daily sales report
 });
 
-// Fetch items from Firestore
+// Fetch items from Firestore (including document ID)
 async function fetchItems() {
   try {
     const querySnapshot = await db.collection('items').get();
-    items = querySnapshot.docs.map(doc => doc.data());
+    items = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     items.sort((a, b) => a.category.localeCompare(b.category)); // Sort by category
     displayItems();
   } catch (error) {
@@ -48,9 +49,7 @@ function displayItems() {
           <span class="stock"><i class="fa fa-box"></i> ${item.stock}</span>
         </div>
         <div class="item-actions">
-          <button class="add-to-cart" onclick="addToCart(${index})" ${
-      item.stock === 0 ? 'disabled' : ''
-    }>
+          <button class="add-to-cart" onclick="addToCart(${index})" ${item.stock === 0 ? 'disabled' : ''}>
             <i class="fa fa-shopping-cart"></i>
           </button>
           <button class="edit-stock" onclick="editStock(${index})">
@@ -67,7 +66,7 @@ function displayItems() {
 function addToCart(index) {
   const item = items[index];
   if (item.stock > 0) {
-    const existingItem = cart.find((cartItem) => cartItem.name === item.name);
+    const existingItem = cart.find(ci => ci.id === item.id);
     if (existingItem) {
       existingItem.quantity++;
     } else {
@@ -104,7 +103,7 @@ function updateCart() {
 // Remove item from cart
 function removeFromCart(index) {
   const item = cart[index];
-  const originalItem = items.find((i) => i.name === item.name);
+  const originalItem = items.find(i => i.id === item.id);
 
   if (item.quantity > 1) {
     item.quantity--;
@@ -136,8 +135,8 @@ async function updateStock() {
   try {
     const batch = db.batch();
 
-    items.forEach((item) => {
-      const itemRef = db.collection('items').doc(item.name); // Document ID is the item name
+    items.forEach(item => {
+      const itemRef = db.collection('items').doc(item.id);
       batch.update(itemRef, { stock: item.stock });
     });
 
@@ -148,7 +147,7 @@ async function updateStock() {
   }
 }
 
-// 📌 Update Firestore with daily sales report
+// Update Firestore with daily sales report
 async function updateSalesReport(cart, totalRevenue) {
   const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
   const reportRef = db.collection('salesReports').doc(today);
@@ -162,11 +161,7 @@ async function updateSalesReport(cart, totalRevenue) {
     }
 
     cart.forEach(item => {
-      if (reportData.itemsSold[item.name]) {
-        reportData.itemsSold[item.name] += item.quantity;
-      } else {
-        reportData.itemsSold[item.name] = item.quantity;
-      }
+      reportData.itemsSold[item.name] = (reportData.itemsSold[item.name] || 0) + item.quantity;
     });
 
     reportData.totalRevenue += totalRevenue;
@@ -179,7 +174,7 @@ async function updateSalesReport(cart, totalRevenue) {
   }
 }
 
-// 📌 Fetch and display sales report
+// Fetch and display sales report
 async function displaySalesReport() {
   const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
   const reportRef = db.collection('salesReports').doc(today);
@@ -218,15 +213,22 @@ function resetCart() {
   updateCart();
 }
 
-// Edit stock of an item
-function editStock(index) {
+// Edit stock of an item (updates Firestore immediately)
+async function editStock(index) {
+  const item = items[index];
   const newStock = parseInt(
-    prompt(`Enter new stock for ${items[index].name}:`, items[index].stock)
+    prompt(`Enter new stock for ${item.name}:`, item.stock)
   );
   if (!isNaN(newStock) && newStock >= 0) {
-    items[index].stock = newStock;
+    item.stock = newStock;
     displayItems();
-    updateStock();
+    try {
+      const itemRef = db.collection('items').doc(item.id);
+      await itemRef.update({ stock: newStock });
+      console.log('Stock edited successfully.');
+    } catch (error) {
+      console.error('Error editing stock:', error);
+    }
   } else {
     alert('Invalid stock value');
   }

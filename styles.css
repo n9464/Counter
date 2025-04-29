@@ -20,7 +20,7 @@ body {
 /* Vertical Divider */
 .divider {
   width: 2px;
-  background-color:rgb(0, 0, 0);
+  background-color: rgb(0, 0, 0);
   align-self: stretch;
 }
 
@@ -35,7 +35,6 @@ body {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   margin-bottom: 10px;
 }
-
 
 /* Legend grid: two items per row */
 .legend-items {
@@ -56,7 +55,7 @@ body {
   margin-right: 8px;
 }
 
-/* Cash Selection Styles */
+/* Cash Selection and Cart Container Styles */
 .cash-selection,
 #cart-container {
   align-items: center;
@@ -65,7 +64,6 @@ body {
   border-radius: 5px;
   background-color: #fff;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-
 }
 
 .cash-selection button {
@@ -82,7 +80,7 @@ body {
   background-color: #2a2a2a;
 }
 
-.cash-selection p, 
+.cash-selection p,
 #cart-container p {
   margin: 5px 0;
 }
@@ -96,7 +94,7 @@ body {
 .grid-container {
   display: grid;
   grid-template-columns: repeat(9, 1fr);
-  gap: 10px;
+  gap: 2px;
   margin-top: 10px;
 }
 
@@ -105,34 +103,36 @@ body {
   border: 5px solid transparent;
   background-color: #fff;
   border-radius: 5px;
-  padding: 8px;
+  padding: 3px;
   text-align: center;
   color: #333;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  height: 140px;
-  font-size: 13px;
+  height: 110px;
+  font-size: 12px;
 }
 
 .item-card h3 {
   margin: 0;
-  font-size: 18px;
+  font-size: 16px;
+  font-weight: 10000;
 }
 
 .item-card p {
-  margin:  0;
-  font-size: 14px;
+  margin: 0;
+  font-size: 12px;
 }
 
 .item-card button {
-  padding: 3px 6px;
+  padding: 2px 4px;
   background-color: #007bff;
   color: white;
   border: none;
   border-radius: 3px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 11px;
+  margin: 0px
 }
 
 .item-card button:disabled {
@@ -140,67 +140,34 @@ body {
   cursor: not-allowed;
 }
 
-.candy { 
-  border-color: #ff5733;   /* Bright Orange-Red */
-  background-color: #ffe0d6; /* Very Muted Orange-Red */
-}     
-.noodles { 
-  border-color: #7fff00;   /* Chartreuse */
-  background-color: #e6f7cc; /* Very Muted Chartreuse */
-}   
-.pop { 
-  border-color: #5733ff;   /* Strong Blue-Purple */
-  background-color: #ddd6ff; /* Very Muted Blue-Purple */
-}       
-.gatorade { 
-  border-color: #00ffff;   /* Cyan */
-  background-color: #d6faff; /* Very Muted Cyan */
-}  
-.chips { 
-  border-color: #ffff00;   /* Pure Yellow */
-  background-color: #fff7cc; /* Very Muted Yellow */
-}     
-.chocolate { 
-  border-color: #800000;   /* Dark Maroon */
-  background-color: #ebd6d6; /* Very Muted Maroon */
-} 
-.popcorn { 
-  border-color: #ff00ff;   /* Magenta */
-  background-color: #f8d6f8; /* Very Muted Magenta */
-}   
-.juice { 
-  border-color: #4d4d4d;   /* Pure Blue */
-  background-color: #b3b3b3; /* Very Muted Blue */
-}     
-.tart { 
-  border-color: #ff1493;   /* Deep Pink */
-  background-color: #fbd6e6; /* Very Muted Deep Pink */
-}      
-.tube { 
-  border-color: #ff4500;   /* Bright Orange-Red */
-  background-color: #ffe6d6; /* Very Muted Orange */
-}      
-     
-
-
-
+/* Item categories styling */
+.candy { border-color: #ff5733; background-color: #ffe0d6; }
+.noodles { border-color: #7fff00; background-color: #e6f7cc; }
+.pop { border-color: #5733ff; background-color: #ddd6ff; }
+.gatorade { border-color: #00ffff; background-color: #d6faff; }
+.chips { border-color: #ffff00; background-color: #fff7cc; }
+.chocolate { border-color: #800000; background-color: #ebd6d6; }
+.popcorn { border-color: #ff00ff; background-color: #f8d6f8; }
+.juice { border-color: #4d4d4d; background-color: #b3b3b3; }
+.tart { border-color: #ff1493; background-color: #fbd6e6; }
+.tube { border-color: #ff4500; background-color: #ffe6d6; }
 
 /* Container for the icon buttons */
 .item-actions {
   display: flex;
   justify-content: center;
-  gap: 5px;
-  margin-top: 5px;
+  gap: 3px;
+  margin-top: 0px;
 }
 
 /* Icon button styles */
 .item-actions button {
-  width: 30px;
-  height: 30px;
+  width: 22px;
+  height: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
+  font-size: 12px;
   background-color: #007bff;
   color: white;
   border: none;
@@ -223,11 +190,15 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 5px 0;
+  margin-bottom: 0;
 }
 
-.item-info .price, 
+.item-info .price,
 .item-info .stock {
   flex: 1;
   text-align: center;
 }
+
+/* Adjust button spacing */
+.add-to-cart { flex: 5; }
+.edit-stock { flex: 2; }
