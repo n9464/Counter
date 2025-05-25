@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sticky Notes</title>
+    <link rel="stylesheet" href="styleNotes.css" />
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style"
+        onload="this.rel='stylesheet'">
+</head>
+
+<body>
+    <nav id="topbar">
+        <a href="index.html" title="Counter"><i class="fas fa-calculator"></i></a>
+        <a href="orders.html" title="Orders"><i class="fas fa-shopping-cart"></i></a>
+        <a href="finances.html" title="Finances"><i class="fas fa-dollar-sign"></i></a>
+        <a href="info.html" title="Info"><i class="fas fa-info-circle"></i></a>
+        <a href="notes.html" title="Notes" style="color: #007bff;"><i class="fas fa-sticky-note"></i></a>
+    </nav>
+
+    <div id="notes-container"></div>
+    <button id="add-note-btn">+</button>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <script src="notes.js"></script>
+</body>
+
+
+</html>

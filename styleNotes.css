@@ -1,0 +1,108 @@
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f5f5f5;
+  }
+  
+  #notes-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    padding: 20px;
+    background: #f7f8fa;
+    overflow-y: auto;
+  }
+  
+  .note {
+    width: 250px;
+    background: #cdcdcd; /* soft sticky note grey */
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    margin: 10px 0;
+    padding: 15px 15px 40px 15px; /* extra bottom padding for delete button */
+    display: inline-block; /* keeps natural height */
+    vertical-align: top;
+    position: relative;
+    height: auto; /* important */
+    max-height: 100px; /* optional max height */
+    overflow: hidden;
+    font-size: 14px;
+  }
+  
+  .note textarea {
+    width: 100%;
+    min-height: 300px; /* starts small */
+    max-height: 300px; /* max grow */
+    resize: none;
+    overflow-y: auto;
+    border: none;
+    background: transparent;
+    outline: none;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  
+  .note button {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: transparent;
+    border: none;
+    font-size: 0.8rem;
+    cursor: pointer;
+    color: #000000;
+    transition: color 0.2s ease;
+  }
+  
+  .note button:hover {
+    color: #3498db;
+  }
+  
+  
+  #add-note-btn {
+    position: fixed;
+    bottom: 25px;
+    left: 25px;
+    background-color: #3498db;
+    border: none;
+    color: white;
+    font-size: 2rem;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    cursor: pointer;
+    box-shadow: 0 6px 15px rgba(52, 152, 219, 0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.3s ease;
+  }
+  
+  #add-note-btn:hover {
+    background-color: #2980b9;
+  }
+  #topbar {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    padding: 10px 20px;
+    border-bottom: 1px solid #ccc;
+    align-items: center;
+    justify-content: flex-start; /* ensures it hugs the left side */
+    background-color: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  
+  #topbar a {
+    color: #333;
+    font-size: 1.5rem;
+    text-decoration: none;
+  }
+  #topbar a:hover {
+    color: #054a94;
+}
+
+  

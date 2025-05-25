@@ -1,4 +1,57 @@
 // Firebase configuration
+const itemToCategory = {
+  "Maynards": "candy",
+  "Mini chocolat": "candy",
+  "Jolly Rancher": "candy",
+  "Lolly pops": "candy",
+  "Chupa Chups": "candy",
+  "Mr Vegy": "noodles",
+  "Mr Beef": "noodles",
+  "Mr Spicy": "noodles",
+  "Mr Chicken": "noodles",
+  "Sprite": "pop",
+  "Coke": "pop",
+  "Rootbeer": "pop",
+  "Dr Pepper": "pop",
+  "Crush Orange": "pop",
+  "Crush Rose": "pop",
+  "Crush Mauve": "pop",
+  "Canada dry": "pop",
+  "Gatorade Bleu": "gatorade",
+  "Gatorade Rouge": "gatorade",
+  "Gatorade Orange": "gatorade",
+  "Gatorade Jaune": "gatorade",
+  "Gatorade Mini": "gatorade",
+  "Lays BBQ": "chips",
+  "Lays Classic": "chips",
+  "Doritos": "chips",
+  "Cheetos": "chips",
+  "Ruffles All Dressed": "chips",
+  "Ruffles Sour/Onion": "chips",
+  "Snickers": "chocolate",
+  "Cookie & Cream": "chocolate",
+  "Oh Henry": "chocolate",
+  "Mars": "chocolate",
+  "Hersheys": "chocolate",
+  "Twix": "chocolate",
+  "Aero": "chocolate",
+  "Aero Mint": "chocolate",
+  "Caramilk": "chocolate",
+  "KitKat": "chocolate",
+  "Popcorn": "popcorn",
+  "Pop-smores": "tart",
+  "Pop-fudge": "tart",
+  "Pop-Rasberry": "tart",
+  "Pop-Strawberry": "tart",
+  "Pop-Blueberry": "tart",
+  "Tubes-Rasberry": "tube",
+  "Tubes-Vanilla": "tube",
+  "Tubes-Strawberry": "tube",
+  "Seaweed": "popcorn",
+  "Iced Tea": "juice",
+  "Peach Punch": "juice",
+  "Fruit Punch": "juice"
+};
 const firebaseConfig = {
   apiKey: "AIzaSyCZdd01uYMq2b3pACHRgJQ7xtQJ6D2kGf8",
   authDomain: "canteen-tracker.firebaseapp.com",
@@ -25,16 +78,28 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Fetch items from Firestore (including document ID)
+// Fetch items from Firestore (from finances collection)
 async function fetchItems() {
   try {
-    const querySnapshot = await db.collection('items').get();
-    items = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    items.sort((a, b) => a.category.localeCompare(b.category)); // Sort by category
+    const querySnapshot = await db.collection('finances').get();
+    items = querySnapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        name: data["Item"],
+        price: parseFloat(data["Prix de vente"]),
+        stock: parseInt(data["# en stock"]) || 0,
+        category: itemToCategory[data["Item"]] || "other",
+      };
+    });
+    items.sort((a, b) => a.category.localeCompare(b.category));
     displayItems();
   } catch (error) {
     console.error('Error loading items:', error);
   }
 }
+
+
 
 // Display items in the grid
 function displayItems() {
@@ -131,13 +196,14 @@ async function checkout() {
 }
 
 // Update stock in Firestore after checkout
+// Update stock in Firestore after checkout
 async function updateStock() {
   try {
     const batch = db.batch();
 
     items.forEach(item => {
-      const itemRef = db.collection('items').doc(item.id);
-      batch.update(itemRef, { stock: item.stock });
+      const itemRef = db.collection('finances').doc(item.id);
+      batch.update(itemRef, { "# en stock": item.stock });
     });
 
     await batch.commit();
@@ -146,6 +212,7 @@ async function updateStock() {
     console.error('Error updating stock:', error);
   }
 }
+
 
 // Update Firestore with daily sales report
 async function updateSalesReport(cart, totalRevenue) {
@@ -214,17 +281,16 @@ function resetCart() {
 }
 
 // Edit stock of an item (updates Firestore immediately)
+// Edit stock of an item (updates Firestore immediately)
 async function editStock(index) {
   const item = items[index];
-  const newStock = parseInt(
-    prompt(`Enter new stock for ${item.name}:`, item.stock)
-  );
+  const newStock = parseInt(prompt(`Enter new stock for ${item.name}:`, item.stock));
   if (!isNaN(newStock) && newStock >= 0) {
     item.stock = newStock;
     displayItems();
     try {
-      const itemRef = db.collection('items').doc(item.id);
-      await itemRef.update({ stock: newStock });
+      const itemRef = db.collection('finances').doc(item.id);
+      await itemRef.update({ "# en stock": newStock });
       console.log('Stock edited successfully.');
     } catch (error) {
       console.error('Error editing stock:', error);
@@ -233,3 +299,4 @@ async function editStock(index) {
     alert('Invalid stock value');
   }
 }
+

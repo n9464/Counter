@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Live Finance Editor</title>
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style"
+        onload="this.rel='stylesheet'">
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th,
+        td {
+            border: 1px solid #999;
+            padding: 0.4em 0.7em;
+            text-align: center;
+        }
+
+        td[contenteditable="true"] {
+            background-color: #f9f9f9;
+            cursor: text;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        @keyframes flashRed {
+            0% {
+                background-color: #ffffff;
+            }
+
+            50% {
+                background-color: #ffb9b9;
+            }
+
+            100% {
+                background-color: #ffffff;
+            }
+        }
+
+        .flash-red {
+            animation: flashRed 2s infinite;
+        }
+
+        #topbar {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+            padding: 10px 20px;
+            border-bottom: 1px solid #ccc;
+            align-items: center;
+            justify-content: flex-start;
+            /* ensures it hugs the left side */
+            background-color: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        #topbar a {
+            color: #333;
+            font-size: 1.5rem;
+            text-decoration: none;
+        }
+
+        #topbar a:hover {
+            color: #054a94;
+        }
+    </style>
+</head>
+
+<body>
+    <nav id="topbar">
+        <a href="index.html" title="Counter">
+            <i class="fas fa-calculator"></i>
+        </a>
+        <a href="orders.html" title="Orders">
+            <i class="fas fa-shopping-cart"></i>
+        </a>
+        <a href="finances.html" title="Finances" style="color: #007bff; font-size: 1.5rem; text-align: center;">
+            <i class="fas fa-dollar-sign"></i>
+        </a>
+        <a href="info.html" title="Info">
+            <i class="fas fa-info-circle"></i>
+        </a>
+        <a href="notes.html" title="Notes">
+            <i class="fas fa-sticky-note"></i>
+        </a>
+    </nav>
+    <table border="1" id="financeTable">
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Prix d'achat</th>
+                <th>Prix de vente</th>
+                <th># Vendu</th>
+                <th>Revenu</th>
+                <th>Profit Net</th>
+                <th># Acheté</th>
+                <th># en stock</th>
+                <th>Vente réalisable</th>
+                <th>Profit réalisable</th>
+
+            </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+            <tr id="totalRow">
+                <td></td>
+                <td></td>
+                <td></td>
+                <td style="text-align: right;"><strong>Total:</strong></td>
+
+                <td>0.00</td> <!-- Index 4: Revenu -->
+                <td>0.00</td> <!-- Index 5: Profit Net -->
+                <td></td> <!-- Index 6: empty -->
+                <td></td> <!-- Index 7: empty -->
+                <td>0.00</td> <!-- Index 8: Vente réalisable -->
+                <td>0.00</td> <!-- Index 9: Profit réalisable -->
+            </tr>
+        </tfoot>
+
+
+    </table>
+    <button id="saveAllButton">💾 Save All</button>
+
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import {
+            getFirestore,
+            collection,
+            onSnapshot,
+            doc,
+            updateDoc,
+            getDocs
+        } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCZdd01uYMq2b3pACHRgJQ7xtQJ6D2kGf8",
+            authDomain: "canteen-tracker.firebaseapp.com",
+            projectId: "canteen-tracker",
+            storageBucket: "canteen-tracker.firebasestorage.app",
+            messagingSenderId: "628568313108",
+            appId: "1:628568313108:web:ff300eb4aa53cf15908601",
+            measurementId: "G-1NPKZBZMM6"
+        };
+
+        const stockThresholds = {
+            "candy": 10,
+            "noodles": 3,
+            "seaweed": 8,
+            "tart": 8,
+            // default for all other categories is 5
+        };
+
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const tableBody = document.querySelector("#financeTable tbody");
+
+        function safeParseFloat(value) {
+            const num = parseFloat(value);
+            return isNaN(num) ? 0 : num;
+        }
+
+        // Calculate derived fields and update DOM cells
+        function updateCalculations(row) {
+            const cells = row.querySelectorAll("td");
+            const prixAchat = parseFloat(cells[1].textContent) || 0;
+            const prixVente = parseFloat(cells[2].textContent) || 0;
+            const nbVendu = parseInt(cells[3].textContent) || 0;
+            const nbAchete = parseInt(cells[6].textContent) || 0;
+            const nbStockCell = cells[7];
+            const nbStock = parseInt(nbStockCell.textContent) || 0;
+
+            const revenuTotal = prixVente * nbVendu;
+            const coutTotal = prixAchat * nbAchete;
+            const profitTotal = revenuTotal - coutTotal;
+            const venteRealisable = prixVente * nbAchete;
+            const profitRealisable = venteRealisable - (prixAchat * nbAchete);
+
+            cells[4].textContent = revenuTotal.toFixed(2);
+            cells[5].textContent = profitTotal.toFixed(2);
+            cells[8].textContent = venteRealisable.toFixed(2);
+            cells[9].textContent = profitRealisable.toFixed(2);
+
+            // Determine the category from the row's data-category attribute
+            const category = row.getAttribute("data-category") || "";
+            const threshold = stockThresholds[category] ?? 5;
+
+            // Flash red if stock is under threshold
+            if (nbStock <= threshold) {
+                nbStockCell.classList.add("flash-red");
+            } else {
+                nbStockCell.classList.remove("flash-red");
+            }
+        }
+
+
+        function updateTotals() {
+            let totalRevenu = 0;
+            let totalProfitNet = 0;
+            let totalVenteReal = 0;
+            let totalProfitReal = 0;
+
+            const rows = tableBody.querySelectorAll("tr");
+
+            rows.forEach(row => {
+                totalRevenu += safeParseFloat(row.children[4].textContent.trim());
+                totalProfitNet += safeParseFloat(row.children[5].textContent.trim());
+                totalVenteReal += safeParseFloat(row.children[8].textContent.trim());
+                totalProfitReal += safeParseFloat(row.children[9].textContent.trim());
+            });
+
+            const totalRow = document.getElementById("totalRow");
+            totalRow.children[4].textContent = totalRevenu.toFixed(2);         // Index 4
+            totalRow.children[5].textContent = totalProfitNet.toFixed(2);      // Index 5
+            totalRow.children[6].textContent = "";                              // Skip 2 merged cells
+            totalRow.children[7].textContent = "";                              // Skip 2 merged cells
+            totalRow.children[8].textContent = totalVenteReal.toFixed(2);      // Index 8
+            totalRow.children[9].textContent = totalProfitReal.toFixed(2);     // Index 9
+
+        }
+
+
+        // Watch edits on editable cells to update calculations live
+        function addInputListeners(row) {
+            // Editable columns indexes: 0,1,2,3,6,7
+            const editableIndexes = [0, 1, 2, 3, 6, 7];
+            editableIndexes.forEach(index => {
+                row.children[index].addEventListener("input", () => updateCalculations(row));
+            });
+        }
+
+        // Load data and build table rows
+        onSnapshot(collection(db, "finances"), (snapshot) => {
+            tableBody.innerHTML = "";
+
+            const itemToCategory = {
+                "Maynards": "candy",
+                "Mini chocolat": "candy",
+                "Jolly Rancher": "candy",
+                "Lolly pops": "candy",
+                "Chupa Chups": "candy",
+                "Mr Vegy": "noodles",
+                "Mr Beef": "noodles",
+                "Mr Spicy": "noodles",
+                "Mr Chicken": "noodles",
+                "Sprite": "pop",
+                "Coke": "pop",
+                "Rootbeer": "pop",
+                "Dr Pepper": "pop",
+                "Crush Orange": "pop",
+                "Crush Rose": "pop",
+                "Crush Mauve": "pop",
+                "Canada dry": "pop",
+                "Gatorade Bleu": "gatorade",
+                "Gatorade Rouge": "gatorade",
+                "Gatorade Orange": "gatorade",
+                "Gatorade Jaune": "gatorade",
+                "Gatorade Mini": "gatorade",
+                "Lays BBQ": "chips",
+                "Lays Classic": "chips",
+                "Doritos": "chips",
+                "Cheetos": "chips",
+                "Ruffles All Dressed": "chips",
+                "Ruffles Sour/Onion": "chips",
+                "Snickers": "chocolate",
+                "Cookie & Cream": "chocolate",
+                "Oh Henry": "chocolate",
+                "Mars": "chocolate",
+                "Hersheys": "chocolate",
+                "Twix": "chocolate",
+                "Aero": "chocolate",
+                "Aero Mint": "chocolate",
+                "Caramilk": "chocolate",
+                "KitKat": "chocolate",
+                "Popcorn": "popcorn",
+                "Pop-smores": "tart",
+                "Pop-fudge": "tart",
+                "Pop-Rasberry": "tart",
+                "Pop-Strawberry": "tart",
+                "Pop-Blueberry": "tart",
+                "Tubes-Rasberry": "tube",
+                "Tubes-Vanilla": "tube",
+                "Tubes-Strawberry": "tube",
+                "Seaweed": "popcorn",
+                "Iced Tea": "juice",
+                "Peach Punch": "juice",
+                "Fruit Punch": "juice"
+            };
+
+            const categoryOrder = ["candy", "chips", "chocolate", "gatorade", "juice", "noodles", "pop", "popcorn", "tart", "tube"];
+
+            const categoryStyles = {
+                candy: { border: "#ff5733" },
+                noodles: { border: "#7fff00" },
+                pop: { border: "#5733ff" },
+                gatorade: { border: "#00ffff" },
+                chips: { border: "#ffff00" },
+                chocolate: { border: "#800000" },
+                snack: { border: "#ff00ff" },
+                juice: { border: "#3f3f3f" },
+                tart: { border: "#ff1493" },
+                tube: { border: "#ff4500" },
+                popcorn: { border: "#a0522d" },
+                other: { border: "#ccc" }
+            };
+
+            const rowsData = [];
+
+            snapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+                const item = data["Item"] || "";
+                const category = itemToCategory[item] || "other";
+
+                if (!itemToCategory[item]) {
+                    console.warn(`[WARNING] "${item}" not found in itemToCategory mapping`);
+                }
+
+                rowsData.push({ id: docSnap.id, data: { ...data, category } });
+            });
+
+            // Sort by custom category order
+            rowsData.sort((a, b) => {
+                const indexA = categoryOrder.indexOf(a.data.category);
+                const indexB = categoryOrder.indexOf(b.data.category);
+
+                const safeIndexA = indexA === -1 ? categoryOrder.length : indexA;
+                const safeIndexB = indexB === -1 ? categoryOrder.length : indexB;
+
+                if (safeIndexA !== safeIndexB) return safeIndexA - safeIndexB;
+
+                const nameA = a.data["Item"]?.toLowerCase() || "";
+                const nameB = b.data["Item"]?.toLowerCase() || "";
+                return nameA.localeCompare(nameB);
+            });
+
+            rowsData.forEach(({ data }) => {
+                const item = data["Item"] || "";
+                const prixAchat = data["Prix d'achat"] || 0;
+                const prixVente = data["Prix de vente"] || 0;
+                const nbVendu = parseInt(data["# Vendu"]) || 0;
+                const nbAchete = parseInt(data["# Acheté"]) || 0;
+                const nbStock = parseInt(data["# en stock"]) || 0;
+                const category = data.category;
+
+                const style = categoryStyles[category] || categoryStyles.other;
+
+                const row = document.createElement("tr");
+                row.setAttribute("data-category", category);
+
+                row.style.borderLeft = `5px solid ${style.border}`;
+
+                row.innerHTML = `
+            <td contenteditable="true">${item}</td>
+            <td contenteditable="true">${prixAchat}</td>
+            <td contenteditable="true">${prixVente}</td>
+            <td contenteditable="true">${nbVendu}</td>
+            <td>0.00</td>
+            <td>0.00</td>
+            <td contenteditable="true">${nbAchete}</td>
+            <td contenteditable="true">${nbStock}</td>
+            <td>0.00</td>
+            <td>0.00</td>
+        `;
+
+                addInputListeners(row);
+                updateCalculations(row);
+                tableBody.appendChild(row);
+            });
+
+            updateTotals();
+        });
+
+
+        document.getElementById("saveAllButton").addEventListener("click", async () => {
+            const rows = tableBody.querySelectorAll("tr");
+
+            // Step 1: Get snapshot and map Item name to document ID
+            const snapshot = await getDocs(collection(db, "finances"));
+            const itemToDocId = {};
+            snapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                const item = (data["Item"] || "").trim();
+                if (item) {
+                    itemToDocId[item] = docSnap.id;
+                }
+            });
+
+            // Step 2: Save data row by row
+            for (let row of rows) {
+                const item = row.children[0].textContent.trim();
+                const prixAchat = safeParseFloat(row.children[1].textContent.trim());
+                const prixVente = safeParseFloat(row.children[2].textContent.trim());
+                const nbVendu = parseInt(row.children[3].textContent.trim()) || 0;
+                const nbAchete = parseInt(row.children[6].textContent.trim()) || 0;
+                const nbStock = parseInt(row.children[7].textContent.trim()) || 0;
+
+                const docId = itemToDocId[item];
+                if (!item || !docId) continue;
+
+                const ref = doc(db, "finances", docId);
+                await updateDoc(ref, {
+                    "Item": item,
+                    "Prix d'achat": prixAchat,
+                    "Prix de vente": prixVente,
+                    "# Vendu": nbVendu,
+                    "# Acheté": nbAchete,
+                    "# en stock": nbStock
+                });
+            }
+
+            alert("✅ Toutes les données ont été sauvegardées !");
+        });
+
+
+
+    </script>
+</body>
+
+</html>

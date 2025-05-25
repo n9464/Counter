@@ -202,3 +202,26 @@ body {
 /* Adjust button spacing */
 .add-to-cart { flex: 5; }
 .edit-stock { flex: 2; }
+#topbar {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  padding: 10px 20px;
+  border-bottom: 1px solid #ccc;
+  align-items: center;
+  justify-content: flex-start; /* ensures it hugs the left side */
+  background-color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+#topbar a {
+  color: #333;
+  font-size: 1.5rem;
+  text-decoration: none;
+}
+#topbar a:hover {
+  color: #054a94;
+}
+
