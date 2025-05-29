@@ -173,33 +173,34 @@
             const cells = row.querySelectorAll("td");
             const prixAchat = parseFloat(cells[1].textContent) || 0;
             const prixVente = parseFloat(cells[2].textContent) || 0;
-            const nbVendu = parseInt(cells[3].textContent) || 0;
             const nbAchete = parseInt(cells[6].textContent) || 0;
-            const nbStockCell = cells[7];
-            const nbStock = parseInt(nbStockCell.textContent) || 0;
+            const nbStock = parseInt(cells[7].textContent) || 0;
+
+            // Calculate nbVendu as nbAchete - nbStock
+            const nbVendu = Math.max(nbAchete - nbStock, 0);
+            cells[3].textContent = nbVendu;
 
             const revenuTotal = prixVente * nbVendu;
             const coutTotal = prixAchat * nbAchete;
             const profitTotal = revenuTotal - coutTotal;
             const venteRealisable = prixVente * nbAchete;
-            const profitRealisable = venteRealisable - (prixAchat * nbAchete);
+            const profitRealisable = venteRealisable - coutTotal;
 
             cells[4].textContent = revenuTotal.toFixed(2);
             cells[5].textContent = profitTotal.toFixed(2);
             cells[8].textContent = venteRealisable.toFixed(2);
             cells[9].textContent = profitRealisable.toFixed(2);
 
-            // Determine the category from the row's data-category attribute
+            // Flash red if stock is under threshold
             const category = row.getAttribute("data-category") || "";
             const threshold = stockThresholds[category] ?? 5;
-
-            // Flash red if stock is under threshold
             if (nbStock <= threshold) {
-                nbStockCell.classList.add("flash-red");
+                cells[7].classList.add("flash-red");
             } else {
-                nbStockCell.classList.remove("flash-red");
+                cells[7].classList.remove("flash-red");
             }
         }
+
 
 
         function updateTotals() {
@@ -361,7 +362,7 @@
             <td contenteditable="true">${item}</td>
             <td contenteditable="true">${prixAchat}</td>
             <td contenteditable="true">${prixVente}</td>
-            <td contenteditable="true">${nbVendu}</td>
+            <td>${nbVendu}</td>
             <td>0.00</td>
             <td>0.00</td>
             <td contenteditable="true">${nbAchete}</td>
