@@ -104,7 +104,7 @@ async function fetchItems() {
   }
 }
 
-// Display items in the grid (whole card is now clickable)
+// Display items in the grid
 function displayItems() {
   const itemsContainer = document.getElementById('items');
   itemsContainer.innerHTML = '';
@@ -119,44 +119,40 @@ function displayItems() {
     );
   }
   
-  // Apply category filter - ONLY show items of that category
+  // Apply category filter by sorting (matching items first)
   if (activeFilter) {
-    filteredItems = filteredItems.filter(item => item.category === activeFilter);
+    filteredItems.sort((a, b) => {
+      const aMatches = a.category === activeFilter;
+      const bMatches = b.category === activeFilter;
+      
+      if (aMatches && !bMatches) return -1;
+      if (!aMatches && bMatches) return 1;
+      return 0;
+    });
   }
   
-  filteredItems.forEach((item) => {
+  filteredItems.forEach((item, index) => {
     // Find the original index in the items array
     const originalIndex = items.findIndex(i => i.id === item.id);
     
-    const itemCard = document.createElement('div');
-    itemCard.className = `item-card ${item.category}`;
-    itemCard.style.cursor = item.stock > 0 ? 'pointer' : 'not-allowed';
-    itemCard.style.opacity = item.stock > 0 ? '1' : '0.6';
-    
-    // Make whole card clickable for adding to cart
-    if (item.stock > 0) {
-      itemCard.addEventListener('click', function(e) {
-        // Don't trigger if clicking the edit button
-        if (!e.target.closest('.edit-stock')) {
-          addToCart(originalIndex);
-        }
-      });
-    }
-    
-    itemCard.innerHTML = `
-      <h3>${item.name}</h3>
-      <div class="item-info">
-        <span class="price"><i class="fa fa-dollar-sign"></i> ${item.price.toFixed(2)}</span>
-        <span class="stock"><i class="fa fa-box"></i> ${item.stock}</span>
-      </div>
-      <div class="item-actions">
-        <button class="edit-stock" onclick="event.stopPropagation(); editStock(${originalIndex})">
-          <i class="fa fa-edit"></i>
-        </button>
+    const itemCard = `
+      <div class="item-card ${item.category}">
+        <h3>${item.name}</h3>
+        <div class="item-info">
+          <span class="price"><i class="fa fa-dollar-sign"></i> ${item.price.toFixed(2)}</span>
+          <span class="stock"><i class="fa fa-box"></i> ${item.stock}</span>
+        </div>
+        <div class="item-actions">
+          <button class="add-to-cart" onclick="addToCart(${originalIndex})" ${item.stock === 0 ? 'disabled' : ''}>
+            <i class="fa fa-shopping-cart"></i>
+          </button>
+          <button class="edit-stock" onclick="editStock(${originalIndex})">
+            <i class="fa fa-edit"></i>
+          </button>
+        </div>
       </div>
     `;
-    
-    itemsContainer.appendChild(itemCard);
+    itemsContainer.innerHTML += itemCard;
   });
   
   // Update results count
