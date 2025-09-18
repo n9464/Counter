@@ -32,28 +32,31 @@
             <!-- Left Panel Navigation Icons (Horizontal) -->
             <!-- Updated topbar structure with search bar -->
 <nav id="topbar">
+    <a href="index.html" title="Counter" class="active">
+        <i class="fas fa-calculator"></i>
+    </a>
+    <a href="orders.html" title="Orders">
+        <i class="fas fa-shopping-cart"></i>
+    </a>
+    <a href="finances.html" title="Finances">
+        <i class="fas fa-dollar-sign"></i>
+    </a>
+    <a href="info.html" title="Info">
+        <i class="fas fa-info-circle"></i>
+    </a>
+    <a href="notes.html" title="Notes">
+        <i class="fas fa-sticky-note"></i>
+    </a>
+</nav>
+
+<!-- New Search Section -->
+<div class="search-section">
+    <h4>Search Items</h4>
     <div class="search-container">
         <i class="fas fa-search search-icon"></i>
-        <input type="text" class="search-bar" placeholder="Search items..." autocomplete="off">
+        <input type="text" class="search-bar" placeholder="Type to search items..." autocomplete="off">
     </div>
-    <div class="nav-links">
-        <a href="index.html" title="Counter" class="active">
-            <i class="fas fa-calculator"></i>
-        </a>
-        <a href="orders.html" title="Orders">
-            <i class="fas fa-shopping-cart"></i>
-        </a>
-        <a href="finances.html" title="Finances">
-            <i class="fas fa-dollar-sign"></i>
-        </a>
-        <a href="info.html" title="Info">
-            <i class="fas fa-info-circle"></i>
-        </a>
-        <a href="notes.html" title="Notes">
-            <i class="fas fa-sticky-note"></i>
-        </a>
-    </div>
-</nav>
+</div>
 
 
 
@@ -103,22 +106,7 @@
 
                 </div>
             </div>
-            <div class="cash-selection">
-                <h3>Select Cash Given:</h3>
-                <div>
-                    <button onclick="selectCash(0.05)">0.05</button>
-                    <button onclick="selectCash(0.10)">0.10</button>
-                    <button onclick="selectCash(0.25)">0.25</button>
-                    <button onclick="selectCash(1)">1</button>
-                    <button onclick="selectCash(2)">2</button>
-                    <button onclick="selectCash(5)">5</button>
-                    <button onclick="selectCash(10)">10</button>
-                    <button onclick="selectCash(20)">20</button>
-                    <button onclick="selectCash(50)">50</button>
-                </div>
-                <p>Cash Given: $<span id="cash-given">0.00</span></p>
-                <p>Change to Give Back: <span id="change-breakdown"></span></p>
-            </div>
+        
 
             <!-- Cart/Receipt -->
             <div id="cart-container">
