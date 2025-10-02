@@ -15,122 +15,135 @@
     <noscript>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     </noscript>
-
 </head>
 
 <body>
-    <!-- Navigation Header -->
-
-
-
-
     <!-- Main Content Container -->
     <div class="main-content">
-        <!-- Left Panel: Legend, Cash Selection, and Cart -->
+        <!-- Left Panel: Navigation, Search, Legend, Cash Selection, and Cart -->
         <div class="left-panel">
-            <!-- Left Panel Navigation Icons -->
-            <!-- Left Panel Navigation Icons (Horizontal) -->
-            <!-- Updated topbar structure with search bar -->
-<nav id="topbar">
-    <a href="index.html" title="Counter" class="active">
-        <i class="fas fa-calculator"></i>
-    </a>
-    <a href="orders.html" title="Orders">
-        <i class="fas fa-shopping-cart"></i>
-    </a>
-    <a href="finances.html" title="Finances">
-        <i class="fas fa-dollar-sign"></i>
-    </a>
-    <a href="info.html" title="Info">
-        <i class="fas fa-info-circle"></i>
-    </a>
-    <a href="notes.html" title="Notes">
-        <i class="fas fa-sticky-note"></i>
-    </a>
-</nav>
+            
+            <!-- Navigation Header -->
+            <nav id="topbar">
+                <a href="index.html" title="Counter" class="active" aria-label="Counter page">
+                    <i class="fas fa-calculator"></i>
+                </a>
+                <a href="orders.html" title="Orders" aria-label="Orders page">
+                    <i class="fas fa-shopping-cart"></i>
+                </a>
+                <a href="finances.html" title="Finances" aria-label="Finances page">
+                    <i class="fas fa-dollar-sign"></i>
+                </a>
+                <a href="info.html" title="Info" aria-label="Info page">
+                    <i class="fas fa-info-circle"></i>
+                </a>
+                <a href="notes.html" title="Notes" aria-label="Notes page">
+                    <i class="fas fa-sticky-note"></i>
+                </a>
+            </nav>
 
-<!-- New Search Section -->
-<div class="search-section">
-    <h4>Search Items</h4>
-    <div class="search-container">
-        <i class="fas fa-search search-icon"></i>
-        <input type="text" class="search-bar" placeholder="Type to search items..." autocomplete="off">
-    </div>
-</div>
-
-
-
-            <div class="legend">
-                <div class="legend-items">
-                    <div class="legend-item">
-                        <div class="legend-color" style="border: 3px solid #ff5733; background-color: #ffe0d6;"></div>
-                        <span>Candy</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color" style="border: 3px solid #7fff00; background-color: #e6f7cc;"></div>
-                        <span>Noodles</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color" style="border: 3px solid #5733ff; background-color: #ddd6ff;"></div>
-                        <span>Pop</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color" style="border: 3px solid #00ffff; background-color: #d6faff;"></div>
-                        <span>Gatorade</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color" style="border: 3px solid #ffff00; background-color: #fff7cc;"></div>
-                        <span>Chips</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color" style="border: 3px solid #800000; background-color: #ebd6d6;"></div>
-                        <span>Chocolate</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color" style="border: 3px solid #ff00ff; background-color: #f8d6f8;"></div>
-                        <span>Snack</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color" style="border: 3px solid #3f3f3f; background-color: #adadad;"></div>
-                        <span>Juice</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color" style="border: 3px solid #ff1493; background-color: #fbd6e6;"></div>
-                        <span>Pop Tarts</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color" style="border: 3px solid #ff4500; background-color: #ffe6d6;"></div>
-                        <span>Frozen Yogurt</span>
-                    </div>
-
-
+            <!-- Search Section -->
+            <div class="search-section">
+                <h4>Search Items</h4>
+                <div class="search-container">
+                    <i class="fas fa-search search-icon" aria-hidden="true"></i>
+                    <input type="text" class="search-bar" placeholder="Type to search items..." 
+                           autocomplete="off" aria-label="Search items">
                 </div>
             </div>
-        
 
-            <!-- Cart/Receipt -->
-            <div id="cart-container">
-                <h2>Receipt</h2>
-                <ul id="cart"></ul>
-                <p>Total: $<span id="total">0.00</span></p>
-                <button onclick="checkout()">Checkout</button>
+            <!-- Legend/Category Filter -->
+            <div class="legend">
+                <h4>Filter by Category</h4>
+                <div class="legend-items">
+                    <div class="legend-item" aria-pressed="false">
+                        <div class="legend-color" style="background-color: #ff6b47;"></div>
+                        <span>Candy</span>
+                    </div>
+                    <div class="legend-item" aria-pressed="false">
+                        <div class="legend-color" style="background-color: #90ff47;"></div>
+                        <span>Noodles</span>
+                    </div>
+                    <div class="legend-item" aria-pressed="false">
+                        <div class="legend-color" style="background-color: #7a47ff;"></div>
+                        <span>Pop</span>
+                    </div>
+                    <div class="legend-item" aria-pressed="false">
+                        <div class="legend-color" style="background-color: #47d9ff;"></div>
+                        <span>Gatorade</span>
+                    </div>
+                    <div class="legend-item" aria-pressed="false">
+                        <div class="legend-color" style="background-color: #ffeb47;"></div>
+                        <span>Chips</span>
+                    </div>
+                    <div class="legend-item" aria-pressed="false">
+                        <div class="legend-color" style="background-color: #b33d3d;"></div>
+                        <span>Chocolate</span>
+                    </div>
+                    <div class="legend-item" aria-pressed="false">
+                        <div class="legend-color" style="background-color: #ff47d9;"></div>
+                        <span>Snack</span>
+                    </div>
+                    <div class="legend-item" aria-pressed="false">
+                        <div class="legend-color" style="background-color: #757575;"></div>
+                        <span>Juice</span>
+                    </div>
+                    <div class="legend-item" aria-pressed="false">
+                        <div class="legend-color" style="background-color: #ff47a3;"></div>
+                        <span>Pop Tarts</span>
+                    </div>
+                    <div class="legend-item" aria-pressed="false">
+                        <div class="legend-color" style="background-color: #ff7547;"></div>
+                        <span>Frozen Yogurt</span>
+                    </div>
+                </div>
             </div>
+
+            <!-- Modern Cash Selection System -->
+            
+
+            <!-- Enhanced Cart Container -->
+            <div id="cart-container">
+                <h2>
+                    <i class="fas fa-shopping-cart"></i> 
+                    Shopping Cart 
+                    <span class="cart-item-count" style="display: none;">0</span>
+                </h2>
+                <ul id="cart">
+                    <!-- Cart items will be dynamically added here -->
+                </ul>
+                
+                <div class="cart-total">
+                    Total: $<span id="total">0.00</span>
+                </div>
+                
+                <button class="checkout-button" onclick="checkout()" disabled 
+                        aria-label="Checkout cart">
+                    <i class="fas fa-shopping-cart"></i> Cart is empty
+                </button>
+            </div>
+
         </div>
 
         <!-- Right Panel: Items Grid -->
         <div class="right-panel">
-            <div class="grid-container" id="items"></div>
+            <div class="grid-container" id="items" role="grid" 
+                 aria-label="Available items for purchase">
+                <!-- Items will be dynamically generated here -->
+            </div>
         </div>
     </div>
 
-    <div id="data-display"></div>
-    <div id="report-container">
-
+    <!-- Sales Report Display -->
+    <div id="data-display" style="margin-top: 20px; padding: 20px; background: var(--surface-alt); border-radius: var(--radius); max-width: 1400px; margin: 20px auto;">
+        <!-- Sales report will be displayed here -->
     </div>
+
+    <!-- Firebase Scripts -->
     <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore-compat.js"></script>
 
-    <!-- Then your custom script without type="module" -->
+    <!-- Your custom script -->
     <script src="index.js"></script>
 
 </body>

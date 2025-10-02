@@ -70,18 +70,50 @@ const db = firebase.firestore(app);
 // Global Variables
 let items = [];
 let cart = [];
-let cashGiven = 0;
-
-// Enhanced filtering and search functionality
 let activeFilter = null;
 let searchTerm = '';
+let isAnimating = false;
 
 // Load items and sales report when the page loads
 document.addEventListener('DOMContentLoaded', () => {
   fetchItems();
   displaySalesReport();
   initializeSearchAndFiltering();
+  initializeKeyboardNavigation();
 });
+
+// Initialize keyboard navigation for accessibility
+function initializeKeyboardNavigation() {
+  // Add keyboard event listener to the grid container
+  const gridContainer = document.querySelector('.grid-container');
+  if (gridContainer) {
+    gridContainer.addEventListener('keydown', handleGridKeydown);
+  }
+  
+  // Make legend items keyboard accessible
+  const legendItems = document.querySelectorAll('.legend-item');
+  legendItems.forEach(item => {
+    item.setAttribute('tabindex', '0');
+    item.setAttribute('role', 'button');
+    item.addEventListener('keydown', handleLegendKeydown);
+  });
+}
+
+function handleGridKeydown(e) {
+  if (e.target.classList.contains('item-card')) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      e.target.click();
+    }
+  }
+}
+
+function handleLegendKeydown(e) {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    e.target.click();
+  }
+}
 
 // Fetch items from Firestore (from finances collection)
 async function fetchItems() {
@@ -104,12 +136,16 @@ async function fetchItems() {
   }
 }
 
-// Display items in the grid
+// Display items with enhanced accessibility and feedback
 function displayItems() {
-  const itemsContainer = document.getElementById('items');
-  itemsContainer.innerHTML = '';
+  if (isAnimating) return;
   
-  // Apply current filters when displaying items
+  const itemsContainer = document.getElementById('items');
+  
+  // Get current items in DOM
+  const currentItems = Array.from(itemsContainer.children);
+  
+  // Determine which items should be shown
   let filteredItems = [...items];
   
   // Apply search filter
@@ -119,47 +155,141 @@ function displayItems() {
     );
   }
   
-  // Apply category filter by sorting (matching items first)
+  // Apply category filter - ONLY show items of that category
   if (activeFilter) {
-    filteredItems.sort((a, b) => {
-      const aMatches = a.category === activeFilter;
-      const bMatches = b.category === activeFilter;
-      
-      if (aMatches && !bMatches) return -1;
-      if (!aMatches && bMatches) return 1;
-      return 0;
-    });
+    filteredItems = filteredItems.filter(item => item.category === activeFilter);
   }
   
-  filteredItems.forEach((item, index) => {
-    // Find the original index in the items array
-    const originalIndex = items.findIndex(i => i.id === item.id);
-    
-    const itemCard = `
-      <div class="item-card ${item.category}">
-        <h3>${item.name}</h3>
-        <div class="item-info">
-          <span class="price"><i class="fa fa-dollar-sign"></i> ${item.price.toFixed(2)}</span>
-          <span class="stock"><i class="fa fa-box"></i> ${item.stock}</span>
-        </div>
-        <div class="item-actions">
-          <button class="add-to-cart" onclick="addToCart(${originalIndex})" ${item.stock === 0 ? 'disabled' : ''}>
-            <i class="fa fa-shopping-cart"></i>
-          </button>
-          <button class="edit-stock" onclick="editStock(${originalIndex})">
-            <i class="fa fa-edit"></i>
-          </button>
-        </div>
-      </div>
-    `;
-    itemsContainer.innerHTML += itemCard;
+  // Create map of items that should be visible
+  const shouldBeVisible = new Set(filteredItems.map(item => item.id));
+  
+  // Phase 1: Animate out items that should be hidden
+  const itemsToHide = currentItems.filter(card => {
+    const itemId = card.dataset.itemId;
+    return itemId && !shouldBeVisible.has(itemId);
   });
+  
+  if (itemsToHide.length > 0) {
+    isAnimating = true;
+    itemsToHide.forEach(card => {
+      card.classList.add('filtering-out');
+    });
+    
+    // Remove hidden items after animation
+    setTimeout(() => {
+      itemsToHide.forEach(card => {
+        if (card.parentNode) {
+          card.parentNode.removeChild(card);
+        }
+      });
+      
+      // Phase 2: Add new items or update existing ones
+      updateVisibleItems(filteredItems, itemsContainer);
+      isAnimating = false;
+    }, 300);
+  } else {
+    // No items to hide, just update visible items
+    updateVisibleItems(filteredItems, itemsContainer);
+  }
   
   // Update results count
   updateResultsCount(filteredItems.length, items.length);
 }
 
-// Add item to cart
+function updateVisibleItems(filteredItems, itemsContainer) {
+  const currentItems = Array.from(itemsContainer.children);
+  const currentItemIds = new Set(currentItems.map(card => card.dataset.itemId).filter(Boolean));
+  
+  filteredItems.forEach((item) => {
+    const originalIndex = items.findIndex(i => i.id === item.id);
+    
+    // Check if item already exists in DOM
+    let itemCard = currentItems.find(card => card.dataset.itemId === item.id);
+    
+    if (itemCard) {
+      // Update existing item
+      updateItemCard(itemCard, item, originalIndex);
+    } else {
+      // Create new item
+      itemCard = createItemCard(item, originalIndex);
+      itemCard.classList.add('filtering-in');
+      itemsContainer.appendChild(itemCard);
+      
+      // Trigger animation
+      setTimeout(() => {
+        itemCard.classList.remove('filtering-in');
+      }, 50);
+    }
+  });
+}
+
+function createItemCard(item, originalIndex) {
+  const itemCard = document.createElement('div');
+  const isOutOfStock = item.stock <= 0;
+  const isLowStock = item.stock > 0 && item.stock <= 5;
+  
+  itemCard.className = `item-card ${item.category}${isOutOfStock ? ' out-of-stock' : ''}`;
+  itemCard.dataset.itemId = item.id;
+  itemCard.dataset.originalIndex = originalIndex; // Store for right-click
+  itemCard.tabIndex = isOutOfStock ? -1 : 0;
+  itemCard.setAttribute('role', 'button');
+  itemCard.setAttribute('aria-label', `${item.name}, $${item.price.toFixed(2)}, ${item.stock} in stock${isOutOfStock ? ', out of stock' : ''}`);
+  
+  // Left click - Add to cart
+  if (!isOutOfStock) {
+    itemCard.addEventListener('click', function(e) {
+      addToCart(originalIndex);
+    });
+    
+    itemCard.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        addToCart(originalIndex);
+      }
+    });
+  }
+  
+  // Right click - Edit stock
+  itemCard.addEventListener('contextmenu', function(e) {
+    e.preventDefault(); // Prevent default context menu
+    editStock(originalIndex);
+  });
+  
+  const stockClass = isLowStock ? 'low-stock' : '';
+  
+  itemCard.innerHTML = `
+    <h3>${item.name}</h3>
+    <div class="item-info">
+      <span class="price">$${item.price.toFixed(2)}</span>
+      <span class="stock ${stockClass}">${item.stock}</span>
+    </div>
+  `;
+  
+  return itemCard;
+}
+
+function updateItemCard(itemCard, item, originalIndex) {
+  const isOutOfStock = item.stock <= 0;
+  const isLowStock = item.stock > 0 && item.stock <= 5;
+  
+  // Update classes
+  itemCard.className = `item-card ${item.category}${isOutOfStock ? ' out-of-stock' : ''}`;
+  itemCard.tabIndex = isOutOfStock ? -1 : 0;
+  itemCard.setAttribute('aria-label', `${item.name}, $${item.price.toFixed(2)}, ${item.stock} in stock${isOutOfStock ? ', out of stock' : ''}`);
+  
+  // Update stock display
+  const stockElement = itemCard.querySelector('.stock');
+  if (stockElement) {
+    stockElement.className = `stock ${isLowStock ? 'low-stock' : ''}`;
+    stockElement.textContent = item.stock;
+  }
+  
+  // Update event handlers
+  const newCard = createItemCard(item, originalIndex);
+  itemCard.replaceWith(newCard);
+}
+
+// Add item to cart with toast notification
 function addToCart(index) {
   const item = items[index];
   if (item.stock > 0) {
@@ -172,29 +302,81 @@ function addToCart(index) {
     item.stock--;
     displayItems();
     updateCart();
+    showCartToast(`${item.name} added to cart!`);
   }
 }
 
-// Update and display the cart
+// Show cart toast notification
+function showCartToast(message) {
+  // Remove existing toast if any
+  const existingToast = document.querySelector('.cart-toast');
+  if (existingToast) {
+    existingToast.remove();
+  }
+  
+  // Create new toast
+  const toast = document.createElement('div');
+  toast.className = 'cart-toast';
+  toast.innerHTML = `
+    <i class="fas fa-check-circle"></i> ${message}
+  `;
+  
+  document.body.appendChild(toast);
+  
+  // Show toast
+  setTimeout(() => toast.classList.add('show'), 100);
+  
+  // Hide and remove toast
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 300);
+  }, 2000);
+}
+
+// Update and display the cart with animations
 function updateCart() {
   const cartContainer = document.getElementById('cart');
   const totalSpan = document.getElementById('total');
+  const cartCount = document.querySelector('.cart-item-count');
+  
   cartContainer.innerHTML = '';
   let total = 0;
+  let itemCount = 0;
 
   cart.forEach((item, index) => {
     const itemTotal = item.price * item.quantity;
     total += itemTotal;
+    itemCount += item.quantity;
 
-    cartContainer.innerHTML += `
-      <li>
-        ${item.name} x${item.quantity} - $${itemTotal.toFixed(2)}
-        <button onclick="removeFromCart(${index})">Remove</button>
-      </li>
+    const cartItem = document.createElement('li');
+    cartItem.innerHTML = `
+      <div class="cart-item-info">
+        <strong>${item.name}</strong><br>
+        <small>$${item.price.toFixed(2)} × ${item.quantity} = $${itemTotal.toFixed(2)}</small>
+      </div>
+      <button class="cart-item-remove" onclick="removeFromCart(${index})" aria-label="Remove ${item.name} from cart">
+        <i class="fas fa-times"></i>
+      </button>
     `;
+    cartContainer.appendChild(cartItem);
   });
 
   totalSpan.innerText = total.toFixed(2);
+  
+  // Update cart item count
+  if (cartCount) {
+    cartCount.textContent = itemCount;
+    cartCount.style.display = itemCount > 0 ? 'flex' : 'none';
+  }
+  
+  // Update checkout button state
+  const checkoutBtn = document.querySelector('.checkout-button');
+  if (checkoutBtn) {
+    checkoutBtn.disabled = cart.length === 0;
+    checkoutBtn.innerHTML = cart.length === 0 ? 
+      '<i class="fas fa-shopping-cart"></i> Cart is empty' : 
+      `<i class="fas fa-credit-card"></i> Checkout ($${total.toFixed(2)})`;
+  }
 }
 
 // Remove item from cart
@@ -210,6 +392,7 @@ function removeFromCart(index) {
   originalItem.stock++;
   displayItems();
   updateCart();
+  showCartToast(`${originalItem.name} removed from cart`);
 }
 
 // Handle checkout and update Firestore
@@ -246,7 +429,7 @@ async function updateStock() {
 
 // Update Firestore with daily sales report
 async function updateSalesReport(cart, totalRevenue) {
-  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+  const today = new Date().toISOString().split('T')[0];
   const reportRef = db.collection('salesReports').doc(today);
 
   try {
@@ -273,7 +456,7 @@ async function updateSalesReport(cart, totalRevenue) {
 
 // Fetch and display sales report
 async function displaySalesReport() {
-  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+  const today = new Date().toISOString().split('T')[0];
   const reportRef = db.collection('salesReports').doc(today);
   const reportContainer = document.getElementById('data-display');
 
@@ -304,13 +487,11 @@ async function displaySalesReport() {
 // Reset cart and cash after checkout
 function resetCart() {
   cart = [];
-  cashGiven = 0;
-  document.getElementById('cash-given').innerText = '0.00';
-  document.getElementById('change-breakdown').innerText = '';
   updateCart();
+  showCartToast('Order completed successfully!');
 }
 
-// Edit stock of an item (updates Firestore immediately)
+// Edit stock of an item (updates Firestore immediately) - Now triggered by right-click
 async function editStock(index) {
   const item = items[index];
   const newStock = parseInt(prompt(`Enter new stock for ${item.name}:`, item.stock));
@@ -321,6 +502,7 @@ async function editStock(index) {
       const itemRef = db.collection('finances').doc(item.id);
       await itemRef.update({ "# en stock": newStock });
       console.log('Stock edited successfully.');
+      showCartToast(`${item.name} stock updated to ${newStock}`);
     } catch (error) {
       console.error('Error editing stock:', error);
     }
@@ -340,7 +522,7 @@ function initializeSearchBar() {
     if (searchBar) {
         searchBar.addEventListener('input', function(e) {
             searchTerm = e.target.value.toLowerCase().trim();
-            displayItems(); // Re-display items with new filter
+            displayItems();
             updateFilterStatus();
         });
         
@@ -374,7 +556,7 @@ function initializeLegendFiltering() {
                 applyCategoryFilter(categoryClass, this);
             }
             
-            displayItems(); // Re-display items with new filter
+            displayItems();
             updateFilterStatus();
         });
     });
@@ -403,8 +585,10 @@ function applyCategoryFilter(categoryClass, clickedLegendItem) {
     // Update legend item active states
     document.querySelectorAll('.legend-item').forEach(item => {
         item.classList.remove('active');
+        item.setAttribute('aria-pressed', 'false');
     });
     clickedLegendItem.classList.add('active');
+    clickedLegendItem.setAttribute('aria-pressed', 'true');
 }
 
 function clearCategoryFilter() {
@@ -413,6 +597,7 @@ function clearCategoryFilter() {
     // Remove active class from all legend items
     document.querySelectorAll('.legend-item').forEach(item => {
         item.classList.remove('active');
+        item.setAttribute('aria-pressed', 'false');
     });
 }
 
@@ -447,7 +632,7 @@ function updateFilterStatus() {
         
         clearButton = document.createElement('button');
         clearButton.className = 'clear-filter';
-        clearButton.textContent = 'Clear All Filters';
+        clearButton.innerHTML = '<i class="fas fa-times"></i> Clear All Filters';
         clearButton.addEventListener('click', clearAllFilters);
         
         filterControls.appendChild(statusElement);
