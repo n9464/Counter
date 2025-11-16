@@ -860,3 +860,338 @@ body {
   padding: 2px 6px;
   border-radius: 4px;
 }
+/* Add this to the :root section */
+
+/* Update header to include points */
+.kiosk-order header > div {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.points-display {
+  background: rgba(255, 20, 147, 0.2);
+  border: 2px solid var(--primary);
+  color: var(--primary);
+  padding: 0.6rem 1.2rem;
+  border-radius: 20px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Vertical category tabs */
+.order-content {
+  display: flex;
+  gap: 1.5rem;
+  flex: 1;
+}
+
+.category-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  overflow-y: auto;
+  width: 160px;
+  padding: 1rem;
+  background: var(--panel);
+  border-radius: var(--radius-md);
+  border: 2px solid var(--border);
+  scroll-behavior: smooth;
+}
+
+.category-tabs::-webkit-scrollbar {
+  width: 6px;
+}
+
+.category-tabs::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.category-tabs::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+.category-tab {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-left: 5px solid;
+  color: var(--text-muted);
+  padding: 0.9rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+  font-weight: 600;
+  font-size: 0.9rem;
+  outline: none;
+  text-align: left;
+}
+
+.category-tab:hover {
+  background: var(--panel-alt);
+}
+
+.category-tab.active {
+  background: linear-gradient(90deg, var(--item-color), var(--item-color));
+  border-color: var(--item-color);
+  color: var(--white);
+  box-shadow: 0 0 15px var(--item-color);
+}
+
+/* Points badge on items */
+.item-button .points-badge {
+  position: absolute;
+  top: 6px;
+  left: 8px;
+  font-size: 0.85rem;
+  color: #ffd700;
+  letter-spacing: 0.5px;
+  font-weight: 700;
+  background: rgba(255, 215, 0, 0.15);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Receipt points display */
+.receipt-points {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.2rem 1rem;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 20, 147, 0.1));
+  border-radius: var(--radius-md);
+  margin-top: 1rem;
+  border: 1.5px solid #ffd700;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.receipt-points span:last-child {
+  color: #ffd700;
+  font-size: 1.3rem;
+}
+/* Order section layout - horizontal */
+#order-section {
+  display: flex !important;
+  flex-direction: column;
+}
+
+.category-tabs {
+  display: flex;
+  flex-direction: row;
+  gap: 0.8rem;
+  overflow-x: auto;
+  width: 100%;
+  padding: 1rem;
+  background: var(--panel);
+  border-radius: var(--radius-md);
+  border: 2px solid var(--border);
+  scroll-behavior: smooth;
+}
+
+.category-tabs::-webkit-scrollbar {
+  height: 6px;
+}
+
+.category-tabs::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.category-tabs::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+.category-tab {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-bottom: 5px solid;
+  color: var(--text-muted);
+  padding: 0.9rem 1.5rem;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+  font-weight: 600;
+  font-size: 0.95rem;
+  outline: none;
+}
+
+.category-tab:hover {
+  background: var(--panel-alt);
+}
+
+.category-tab.active {
+  background: linear-gradient(180deg, var(--item-color), var(--item-color)99);
+  border-color: var(--item-color);
+  color: var(--white);
+  box-shadow: 0 -4px 15px var(--item-color);
+}
+
+/* Redeem button in header */
+.redeem-button {
+  background: linear-gradient(135deg, #ffd700, #ffed4e);
+  color: #000;
+  border: none;
+  padding: 0.7rem 1.5rem;
+  border-radius: 20px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+}
+
+.redeem-button:hover:not([disabled]) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+}
+
+.redeem-button[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Redeem Modal */
+.redeem-panel {
+  position: relative;
+  z-index: 2001;
+  background: var(--panel);
+  color: var(--white);
+  min-width: 420px;
+  max-width: 480px;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 0 40px rgba(255, 215, 0, 0.3), var(--shadow-md);
+  padding: 2.5rem 2.8rem;
+  border: 2px solid #ffd700;
+  animation: modalSlideIn 0.4s var(--transition);
+}
+
+.redeem-panel h3 {
+  text-align: center;
+  color: #ffd700;
+  font-weight: 800;
+  margin: 0 0 2rem;
+  font-size: 2rem;
+  font-family: 'Poppins', sans-serif;
+  text-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+}
+
+#redeem-content {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+#redeem-content p {
+  margin: 0.8rem 0;
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+#redeem-content strong {
+  color: #ffd700;
+  font-weight: 700;
+}
+
+.redeem-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.cancel-btn, .confirm-btn {
+  flex: 1;
+  padding: 0.9rem 1.5rem;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.cancel-btn {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  color: var(--text);
+}
+
+.cancel-btn:hover {
+  background: var(--panel-alt);
+}
+
+.confirm-btn {
+  background: linear-gradient(135deg, #ffd700, #ffed4e);
+  color: #000;
+  font-weight: 700;
+}
+
+.confirm-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+}
+
+/* Points badge on items */
+.item-button .points-badge {
+  position: absolute;
+  top: 6px;
+  left: 8px;
+  font-size: 0.85rem;
+  color: #ffd700;
+  letter-spacing: 0.5px;
+  font-weight: 700;
+  background: rgba(255, 215, 0, 0.15);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Points in header */
+.points-display {
+  background: rgba(255, 215, 0, 0.2);
+  border: 2px solid #ffd700;
+  color: #ffd700;
+  padding: 0.6rem 1.2rem;
+  border-radius: 20px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Receipt points section */
+.receipt-points {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.2rem 1rem;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 20, 147, 0.1));
+  border-radius: var(--radius-md);
+  margin-top: 1rem;
+  border: 1.5px solid #ffd700;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.receipt-points span:last-child {
+  color: #ffd700;
+  font-size: 1.3rem;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}

@@ -38,10 +38,21 @@
         <div>
           <span class="user-icon"><i class="fas fa-user"></i></span>
           <span id="username"></span>
+          <span class="points-display"><i class="fas fa-star"></i> <span id="points-display">0</span></span>
+          <button id="redeem-btn" class="redeem-button">
+            <i class="fas fa-gift"></i> Redeem
+          </button>
         </div>
         <button id="logout-btn" title="Log out"><i class="fas fa-sign-out-alt"></i> Log Out</button>
       </header>
+
+      <!-- Category Tabs (Horizontal) -->
+      <div class="category-tabs" id="category-tabs"></div>
+
+      <!-- Items Grid -->
       <div class="items-grid" id="items-grid"></div>
+
+      <!-- Footer -->
       <footer class="kiosk-footer">
         <div class="footer-columns">
           <div>
@@ -70,6 +81,19 @@
           <i class="fas fa-check-circle"></i>
           <p>Thank you for your order!</p>
           <p style="font-size: 0.9rem; margin-top: 0.5rem;">Logging out...</p>
+        </div>
+      </article>
+    </section>
+
+    <!-- Redeem Modal -->
+    <section id="redeem-modal" class="modal" style="display:none">
+      <div class="modal-bg"></div>
+      <article class="redeem-panel">
+        <h3><i class="fas fa-gift" style="margin-right: 0.5rem;"></i>Redeem Points</h3>
+        <div id="redeem-content"></div>
+        <div class="redeem-actions">
+          <button id="cancel-redeem-btn" class="cancel-btn">Cancel</button>
+          <button id="confirm-redeem-btn" class="confirm-btn">Confirm Redeem</button>
         </div>
       </article>
     </section>
