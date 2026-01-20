@@ -28,6 +28,7 @@ const itemToCategory = {
   "Cheetos": "chips",
   "Ruffles All Dressed": "chips",
   "Ruffles Sour/Onion": "chips",
+  "Pringles": "chips",
   "Snickers": "chocolate",
   "Cookie & Cream": "chocolate",
   "Coffee Crisp": "chocolate",
