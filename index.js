@@ -106,16 +106,32 @@ function getLocalISODate(date = new Date()) {
   return `${year}-${month}-${day}`;
 }
 
+function parseLocalISODate(dateString) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return null;
+
+  const [year, month, day] = dateString.split('-').map(Number);
+  const parsed = new Date(year, month - 1, day);
+
+  if (
+    parsed.getFullYear() !== year ||
+    parsed.getMonth() !== month - 1 ||
+    parsed.getDate() !== day
+  ) {
+    return null;
+  }
+
+  return parsed;
+}
+
 function calculateDaysSince(dateString) {
   if (!dateString) return null;
-  const lastDate = new Date(dateString);
-  if (Number.isNaN(lastDate.getTime())) return null;
+  const lastDate = parseLocalISODate(dateString);
+  if (!lastDate) return null;
 
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  lastDate.setHours(0, 0, 0, 0);
+  const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
-  const dayDiff = Math.floor((today - lastDate) / MS_PER_DAY);
+  const dayDiff = Math.floor((todayDate - lastDate) / MS_PER_DAY);
   return dayDiff < 0 ? null : dayDiff;
 }
 
@@ -179,6 +195,11 @@ function renderCanteenDutyTracker(statusByName) {
 }
 
 async function markCanteenDoneToday(name, button) {
+  if (!canteenNames.includes(name)) {
+    console.error(`Invalid canteen duty name: ${name}`);
+    return;
+  }
+
   button.disabled = true;
 
   try {
