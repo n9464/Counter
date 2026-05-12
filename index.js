@@ -74,14 +74,127 @@ let cart = [];
 let activeFilter = null;
 let searchTerm = '';
 let isAnimating = false;
+const canteenNames = [
+  'Joshua',
+  'Samuel',
+  'Thomas',
+  'Raelle',
+  'Vivianne',
+  'Ellianna',
+  'Maryam',
+  'Eric',
+  'Lachlan',
+  'Ethan',
+  'Nicolas'
+];
 
 // Load items and sales report when the page loads
 document.addEventListener('DOMContentLoaded', () => {
   fetchItems();
   displaySalesReport();
+  loadCanteenDutyTracker();
   initializeSearchAndFiltering();
   initializeKeyboardNavigation();
 });
+
+function getLocalISODate(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function calculateDaysSince(dateString) {
+  if (!dateString) return null;
+  const lastDate = new Date(dateString);
+  if (Number.isNaN(lastDate.getTime())) return null;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  lastDate.setHours(0, 0, 0, 0);
+
+  const msPerDay = 24 * 60 * 60 * 1000;
+  const dayDiff = Math.floor((today - lastDate) / msPerDay);
+  return dayDiff < 0 ? 0 : dayDiff;
+}
+
+function formatDaysSince(days) {
+  if (days === null) return 'Never';
+  return `${days} day${days === 1 ? '' : 's'}`;
+}
+
+async function loadCanteenDutyTracker() {
+  const listContainer = document.getElementById('canteen-duty-list');
+  if (!listContainer) return;
+
+  const statusByName = {};
+
+  try {
+    const snapshot = await db.collection('canteenDuty').get();
+    snapshot.forEach(doc => {
+      statusByName[doc.id] = doc.data().lastDoneDate || null;
+    });
+  } catch (error) {
+    console.error('Error loading canteen duty tracker:', error);
+  }
+
+  renderCanteenDutyTracker(statusByName);
+}
+
+function renderCanteenDutyTracker(statusByName) {
+  const listContainer = document.getElementById('canteen-duty-list');
+  if (!listContainer) return;
+
+  listContainer.innerHTML = '';
+
+  canteenNames.forEach(name => {
+    const row = document.createElement('div');
+    row.className = 'canteen-duty-row';
+
+    const nameElement = document.createElement('span');
+    nameElement.className = 'canteen-duty-name';
+    nameElement.textContent = name;
+
+    const metaElement = document.createElement('div');
+    metaElement.className = 'canteen-duty-meta';
+
+    const daysElement = document.createElement('span');
+    daysElement.className = 'canteen-duty-days';
+    daysElement.textContent = formatDaysSince(calculateDaysSince(statusByName[name]));
+
+    const button = document.createElement('button');
+    button.className = 'canteen-duty-button';
+    button.type = 'button';
+    button.textContent = 'Did today';
+    button.setAttribute('aria-label', `Mark ${name} as did canteen today`);
+    button.addEventListener('click', () => markCanteenDoneToday(name, button));
+
+    metaElement.appendChild(daysElement);
+    metaElement.appendChild(button);
+    row.appendChild(nameElement);
+    row.appendChild(metaElement);
+    listContainer.appendChild(row);
+  });
+}
+
+async function markCanteenDoneToday(name, button) {
+  button.disabled = true;
+
+  try {
+    await db.collection('canteenDuty').doc(name).set({
+      name,
+      lastDoneDate: getLocalISODate(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+
+    await loadCanteenDutyTracker();
+    showCartToast(`${name} marked for today`);
+  } catch (error) {
+    console.error(`Error updating canteen duty for ${name}:`, error);
+    alert(`Could not update canteen duty for ${name}.`);
+    button.disabled = false;
+  }
+}
 
 // Initialize keyboard navigation for accessibility
 function initializeKeyboardNavigation() {
