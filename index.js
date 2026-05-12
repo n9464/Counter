@@ -97,6 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initializeKeyboardNavigation();
 });
 
+// Returns a local calendar date string in YYYY-MM-DD format.
 function getLocalISODate(date = new Date()) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -115,7 +116,7 @@ function calculateDaysSince(dateString) {
 
   const msPerDay = 24 * 60 * 60 * 1000;
   const dayDiff = Math.floor((today - lastDate) / msPerDay);
-  return dayDiff < 0 ? 0 : dayDiff;
+  return dayDiff < 0 ? null : dayDiff;
 }
 
 function formatDaysSince(days) {
