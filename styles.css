@@ -192,6 +192,83 @@ body {
 }
 
 /* -------------------------------------------------
+   Canteen Duty Tracker
+-------------------------------------------------- */
+
+.canteen-duty-section {
+  background: var(--surface-alt);
+  border-radius: var(--radius);
+  padding: 16px 12px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+}
+
+.canteen-duty-section h4 {
+  margin: 0 0 12px 0;
+  color: var(--text-bright);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.canteen-duty-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.canteen-duty-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 8px;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+}
+
+.canteen-duty-name {
+  color: var(--text-bright);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.canteen-duty-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.canteen-duty-days {
+  color: var(--text-muted);
+  font-size: 12px;
+  min-width: 52px;
+  text-align: right;
+}
+
+.canteen-duty-button {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.canteen-duty-button:hover,
+.canteen-duty-button:focus {
+  border-color: var(--accent);
+  color: var(--accent-light);
+}
+
+.canteen-duty-button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+/* -------------------------------------------------
    Legend with Better Accessibility
 -------------------------------------------------- */
 

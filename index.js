@@ -74,14 +74,152 @@ let cart = [];
 let activeFilter = null;
 let searchTerm = '';
 let isAnimating = false;
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const canteenNames = [
+  'Joshua',
+  'Samuel',
+  'Thomas',
+  'Raelle',
+  'Vivianne',
+  'Ellianna',
+  'Maryam',
+  'Eric',
+  'Lachlan',
+  'Ethan',
+  'Nicolas'
+];
 
 // Load items and sales report when the page loads
 document.addEventListener('DOMContentLoaded', () => {
   fetchItems();
   displaySalesReport();
+  loadCanteenDutyTracker();
   initializeSearchAndFiltering();
   initializeKeyboardNavigation();
 });
+
+// Returns a local calendar date string in YYYY-MM-DD format.
+function getLocalISODate(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function parseLocalISODate(dateString) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return null;
+
+  const [year, month, day] = dateString.split('-').map(Number);
+  const parsed = new Date(year, month - 1, day);
+
+  if (
+    parsed.getFullYear() !== year ||
+    parsed.getMonth() !== month - 1 ||
+    parsed.getDate() !== day
+  ) {
+    return null;
+  }
+
+  return parsed;
+}
+
+function calculateDaysSince(dateString) {
+  if (!dateString) return null;
+  const lastDate = parseLocalISODate(dateString);
+  if (!lastDate) return null;
+
+  const today = new Date();
+  const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+  const dayDiff = Math.floor((todayDate - lastDate) / MS_PER_DAY);
+  return dayDiff < 0 ? null : dayDiff;
+}
+
+function formatDaysSince(days) {
+  if (days === null) return 'Never';
+  return `${days} day${days === 1 ? '' : 's'}`;
+}
+
+async function loadCanteenDutyTracker() {
+  const listContainer = document.getElementById('canteen-duty-list');
+  if (!listContainer) return;
+
+  const statusByName = {};
+
+  try {
+    const snapshot = await db.collection('canteenDuty').get();
+    snapshot.forEach(doc => {
+      statusByName[doc.id] = doc.data().lastDoneDate || null;
+    });
+  } catch (error) {
+    console.error('Error loading canteen duty tracker:', error);
+  }
+
+  renderCanteenDutyTracker(statusByName);
+}
+
+function renderCanteenDutyTracker(statusByName) {
+  const listContainer = document.getElementById('canteen-duty-list');
+  if (!listContainer) return;
+
+  listContainer.innerHTML = '';
+
+  canteenNames.forEach(name => {
+    const row = document.createElement('div');
+    row.className = 'canteen-duty-row';
+
+    const nameElement = document.createElement('span');
+    nameElement.className = 'canteen-duty-name';
+    nameElement.textContent = name;
+
+    const metaElement = document.createElement('div');
+    metaElement.className = 'canteen-duty-meta';
+
+    const daysElement = document.createElement('span');
+    daysElement.className = 'canteen-duty-days';
+    daysElement.textContent = formatDaysSince(calculateDaysSince(statusByName[name]));
+
+    const button = document.createElement('button');
+    button.className = 'canteen-duty-button';
+    button.type = 'button';
+    button.textContent = 'Did today';
+    button.setAttribute('aria-label', `Mark ${name} as did canteen today`);
+    button.addEventListener('click', () => markCanteenDoneToday(name, button));
+
+    metaElement.appendChild(daysElement);
+    metaElement.appendChild(button);
+    row.appendChild(nameElement);
+    row.appendChild(metaElement);
+    listContainer.appendChild(row);
+  });
+}
+
+async function markCanteenDoneToday(name, button) {
+  if (!canteenNames.includes(name)) {
+    console.error(`Invalid canteen duty name: ${name}`);
+    return;
+  }
+
+  button.disabled = true;
+
+  try {
+    await db.collection('canteenDuty').doc(name).set({
+      name,
+      lastDoneDate: getLocalISODate(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+
+    await loadCanteenDutyTracker();
+    showToast(`${name} marked for today`);
+  } catch (error) {
+    console.error(`Error updating canteen duty for ${name}:`, error);
+    showToast(`Could not update ${name}: ${error.message || 'Unknown error'}`);
+  } finally {
+    if (button.isConnected) {
+      button.disabled = false;
+    }
+  }
+}
 
 // Initialize keyboard navigation for accessibility
 function initializeKeyboardNavigation() {
@@ -303,12 +441,12 @@ function addToCart(index) {
     item.stock--;
     displayItems();
     updateCart();
-    showCartToast(`${item.name} added to cart!`);
+    showToast(`${item.name} added to cart!`);
   }
 }
 
 // Show cart toast notification
-function showCartToast(message) {
+function showToast(message) {
   // Remove existing toast if any
   const existingToast = document.querySelector('.cart-toast');
   if (existingToast) {
@@ -393,7 +531,7 @@ function removeFromCart(index) {
   originalItem.stock++;
   displayItems();
   updateCart();
-  showCartToast(`${originalItem.name} removed from cart`);
+  showToast(`${originalItem.name} removed from cart`);
 }
 
 // Handle checkout and update Firestore
@@ -489,7 +627,7 @@ async function displaySalesReport() {
 function resetCart() {
   cart = [];
   updateCart();
-  showCartToast('Order completed successfully!');
+  showToast('Order completed successfully!');
 }
 
 // Edit stock of an item (updates Firestore immediately) - Now triggered by right-click
@@ -503,7 +641,7 @@ async function editStock(index) {
       const itemRef = db.collection('finances').doc(item.id);
       await itemRef.update({ "# en stock": newStock });
       console.log('Stock edited successfully.');
-      showCartToast(`${item.name} stock updated to ${newStock}`);
+      showToast(`${item.name} stock updated to ${newStock}`);
     } catch (error) {
       console.error('Error editing stock:', error);
     }
