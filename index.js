@@ -74,6 +74,7 @@ let cart = [];
 let activeFilter = null;
 let searchTerm = '';
 let isAnimating = false;
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const canteenNames = [
   'Joshua',
   'Samuel',
@@ -114,8 +115,7 @@ function calculateDaysSince(dateString) {
   today.setHours(0, 0, 0, 0);
   lastDate.setHours(0, 0, 0, 0);
 
-  const msPerDay = 24 * 60 * 60 * 1000;
-  const dayDiff = Math.floor((today - lastDate) / msPerDay);
+  const dayDiff = Math.floor((today - lastDate) / MS_PER_DAY);
   return dayDiff < 0 ? null : dayDiff;
 }
 
@@ -192,8 +192,11 @@ async function markCanteenDoneToday(name, button) {
     showCartToast(`${name} marked for today`);
   } catch (error) {
     console.error(`Error updating canteen duty for ${name}:`, error);
-    alert(`Could not update canteen duty for ${name}.`);
-    button.disabled = false;
+    alert(`Could not update canteen duty for ${name}: ${error.message || 'Unknown error'}`);
+  } finally {
+    if (button.isConnected) {
+      button.disabled = false;
+    }
   }
 }
 
