@@ -192,6 +192,23 @@ function renderCanteenDutyTracker(statusByName) {
     row.appendChild(metaElement);
     listContainer.appendChild(row);
   });
+
+  renderCanteenDaysSummary(statusByName);
+}
+
+function renderCanteenDaysSummary(statusByName) {
+  const summaryContainer = document.getElementById('canteen-days-summary-list');
+  if (!summaryContainer) return;
+
+  summaryContainer.innerHTML = '';
+
+  canteenNames.forEach(name => {
+    const days = calculateDaysSince(statusByName[name]);
+    const pill = document.createElement('span');
+    pill.className = 'canteen-days-summary-pill';
+    pill.textContent = `${name}: ${formatDaysSince(days)}`;
+    summaryContainer.appendChild(pill);
+  });
 }
 
 async function markCanteenDoneToday(name, button) {
