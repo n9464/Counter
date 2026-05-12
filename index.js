@@ -210,7 +210,7 @@ async function markCanteenDoneToday(name, button) {
     }, { merge: true });
 
     await loadCanteenDutyTracker();
-    showCartToast(`${name} marked for today`);
+    showToast(`${name} marked for today`);
   } catch (error) {
     console.error(`Error updating canteen duty for ${name}:`, error);
     alert(`Could not update canteen duty for ${name}: ${error.message || 'Unknown error'}`);
@@ -441,12 +441,12 @@ function addToCart(index) {
     item.stock--;
     displayItems();
     updateCart();
-    showCartToast(`${item.name} added to cart!`);
+    showToast(`${item.name} added to cart!`);
   }
 }
 
 // Show cart toast notification
-function showCartToast(message) {
+function showToast(message) {
   // Remove existing toast if any
   const existingToast = document.querySelector('.cart-toast');
   if (existingToast) {
@@ -531,7 +531,7 @@ function removeFromCart(index) {
   originalItem.stock++;
   displayItems();
   updateCart();
-  showCartToast(`${originalItem.name} removed from cart`);
+  showToast(`${originalItem.name} removed from cart`);
 }
 
 // Handle checkout and update Firestore
@@ -627,7 +627,7 @@ async function displaySalesReport() {
 function resetCart() {
   cart = [];
   updateCart();
-  showCartToast('Order completed successfully!');
+  showToast('Order completed successfully!');
 }
 
 // Edit stock of an item (updates Firestore immediately) - Now triggered by right-click
@@ -641,7 +641,7 @@ async function editStock(index) {
       const itemRef = db.collection('finances').doc(item.id);
       await itemRef.update({ "# en stock": newStock });
       console.log('Stock edited successfully.');
-      showCartToast(`${item.name} stock updated to ${newStock}`);
+      showToast(`${item.name} stock updated to ${newStock}`);
     } catch (error) {
       console.error('Error editing stock:', error);
     }
