@@ -42,6 +42,50 @@ body {
 }
 
 /* -------------------------------------------------
+   Compact Canteen Days Summary
+-------------------------------------------------- */
+
+.canteen-days-summary {
+  max-width: 1400px;
+  margin: 12px auto 0;
+  padding: 6px 10px;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: var(--shadow-sm);
+}
+
+.canteen-days-summary-title {
+  color: var(--text-bright);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.canteen-days-summary-list {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  min-width: 0;
+  flex: 1;
+  padding-bottom: 1px;
+}
+
+.canteen-days-summary-pill {
+  border: 1px solid var(--border);
+  background: var(--surface-muted);
+  border-radius: 999px;
+  font-size: 11px;
+  padding: 3px 8px;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------
    Focus Styles for Accessibility
 -------------------------------------------------- */
 
@@ -762,6 +806,11 @@ body {
 }
 
 @media (max-width: 600px) {
+  .canteen-days-summary {
+    border-radius: 0;
+    margin-top: 0;
+  }
+
   .grid-container {
     grid-template-columns: repeat(3, 1fr);
     gap: 6px;
