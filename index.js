@@ -206,8 +206,7 @@ function renderCanteenDaysSummary(statusByName) {
     const days = calculateDaysSince(statusByName[name]);
     const pill = document.createElement('span');
     pill.className = 'canteen-days-summary-pill';
-    pill.textContent = `${name}: ${days === null ? 'Never' : `${days}d`}`;
-    pill.setAttribute('aria-label', `${name}: ${days === null ? 'Never' : `${days} days`}`);
+    pill.textContent = `${name}: ${formatDaysSince(days)}`;
     summaryContainer.appendChild(pill);
   });
 }
