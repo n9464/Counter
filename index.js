@@ -141,8 +141,8 @@ function formatDaysSince(days) {
 }
 
 async function loadCanteenDutyTracker() {
-  const listContainer = document.getElementById('canteen-duty-list');
-  if (!listContainer) return;
+  const summaryContainer = document.getElementById('canteen-days-summary-list');
+  if (!summaryContainer) return;
 
   const statusByName = {};
 
@@ -155,44 +155,6 @@ async function loadCanteenDutyTracker() {
     console.error('Error loading canteen duty tracker:', error);
   }
 
-  renderCanteenDutyTracker(statusByName);
-}
-
-function renderCanteenDutyTracker(statusByName) {
-  const listContainer = document.getElementById('canteen-duty-list');
-  if (!listContainer) return;
-
-  listContainer.innerHTML = '';
-
-  canteenNames.forEach(name => {
-    const row = document.createElement('div');
-    row.className = 'canteen-duty-row';
-
-    const nameElement = document.createElement('span');
-    nameElement.className = 'canteen-duty-name';
-    nameElement.textContent = name;
-
-    const metaElement = document.createElement('div');
-    metaElement.className = 'canteen-duty-meta';
-
-    const daysElement = document.createElement('span');
-    daysElement.className = 'canteen-duty-days';
-    daysElement.textContent = formatDaysSince(calculateDaysSince(statusByName[name]));
-
-    const button = document.createElement('button');
-    button.className = 'canteen-duty-button';
-    button.type = 'button';
-    button.textContent = 'Did today';
-    button.setAttribute('aria-label', `Mark ${name} as did canteen today`);
-    button.addEventListener('click', () => markCanteenDoneToday(name, button));
-
-    metaElement.appendChild(daysElement);
-    metaElement.appendChild(button);
-    row.appendChild(nameElement);
-    row.appendChild(metaElement);
-    listContainer.appendChild(row);
-  });
-
   renderCanteenDaysSummary(statusByName);
 }
 
@@ -204,9 +166,12 @@ function renderCanteenDaysSummary(statusByName) {
 
   canteenNames.forEach(name => {
     const days = calculateDaysSince(statusByName[name]);
-    const pill = document.createElement('span');
+    const pill = document.createElement('button');
     pill.className = 'canteen-days-summary-pill';
+    pill.type = 'button';
     pill.textContent = `${name}: ${formatDaysSince(days)}`;
+    pill.setAttribute('aria-label', `Reset ${name} canteen timer to today`);
+    pill.addEventListener('click', () => markCanteenDoneToday(name, pill));
     summaryContainer.appendChild(pill);
   });
 }
