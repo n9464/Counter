@@ -213,7 +213,7 @@ async function markCanteenDoneToday(name, button) {
     showToast(`${name} marked for today`);
   } catch (error) {
     console.error(`Error updating canteen duty for ${name}:`, error);
-    alert(`Could not update canteen duty for ${name}: ${error.message || 'Unknown error'}`);
+    showToast(`Could not update ${name}: ${error.message || 'Unknown error'}`);
   } finally {
     if (button.isConnected) {
       button.disabled = false;
