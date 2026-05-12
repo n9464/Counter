@@ -27,7 +27,7 @@
   --shadow-md: 0 4px 28px rgba(30, 64, 175, 0.35);
   --radius: 12px;
   --transition: 0.15s ease;
-  --success: #f59e0b;
+  --success: #3b82f6;
   --warning: #fbbf24;
   --error: #ef4444;
 }
@@ -439,7 +439,7 @@ body {
 
 .checkout-button {
   width: 100%;
-  background: linear-gradient(90deg, var(--success), #d97706 70%);
+  background: linear-gradient(90deg, var(--success), #2563eb 70%);
   border: none;
   color: var(--text-bright);
   padding: 16px;
@@ -452,7 +452,7 @@ body {
 
 .checkout-button:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
 }
 
 .checkout-button:disabled {
